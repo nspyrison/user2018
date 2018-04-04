@@ -4,11 +4,7 @@ author: "Nicholas Spyrison"
 date: "3 April 2018"
 output: html_document
 ---
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo=TRUE, message=FALSE, warning=FALSE)
-#rmd output document options: html_document, word_document, pdf_document
-#see chunk options at: https://yihui.name/knitr/options/
-```
+
 
 [tour](https://en.wikipedia.org/wiki/Grand_Tour_(data_visualisation))
 [tour documentation](https://cran.r-project.org/web/packages/tourr/tourr.pdf)
