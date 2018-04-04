@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Nicholas Spyrison" />
+
+
+<title>High Dim Vis _draft</title>
+
+<script src="poster_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="poster_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="poster_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="poster_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="poster_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="poster_files/navigation-1.1/tabsets.js"></script>
+<link href="poster_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="poster_files/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">High Dim Vis _draft</h1>
+<h4 class="author"><em>Nicholas Spyrison</em></h4>
+<h4 class="date"><em>3 April 2018</em></h4>
+
+</div>
+
+
+<div id="note-graphic-windows-with-tourranimate-make-it-to-figure-html-but-not-into-the-final-.html-document" class="section level1">
+<h1><strong>NOTE: Graphic windows with tourr:animate make it to %/figure-html/%, but not into the final .html document!!</strong></h1>
+<p><a href="https://en.wikipedia.org/wiki/Grand_Tour_(data_visualisation)">tour</a></p>
+<p><a href="https://cran.r-project.org/web/packages/tourr/tourr.pdf">tour documentation</a></p>
+<p><a href="https://en.wikipedia.org/wiki/Principal_component_analysis">PCA</a></p>
+<p><a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/prcomp.html">PCA documentation</a></p>
+<p><a href="https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding">t-SNE</a></p>
+<p><a href="https://cran.r-project.org/web/packages/Rtsne/Rtsne.pdf">t-SNE documentation</a></p>
+</div>
+<div id="tourr-visualizing-higher-dimensions-vs-alternatives" class="section level1">
+<h1>tourr; visualizing higher dimensions vs alternatives</h1>
+<div id="absract" class="section level3">
+<h3>Absract</h3>
+<p>Visualizing in higher (greater than p=3 numeric dimensions) can be messy and unintuitive. Here we explain the methodology and explore the functionality of tourr. We offer a vignette for use and contrast with other higher dimensional visualization methods.</p>
+<p>The R package, tourr (2011, Wickham, H., D. Cook), gives us the means to animate the projection as we rotate though p-dimensions. This is achieved by varying the contributions from each dimension, via random walk, predefined path, or optimizing an index.</p>
+<div id="sources" class="section level4">
+<h4>sources</h4>
+<p>Wickham, H., D. Cook, and H. Hofmann (2015). Visualising statistical models: Removing the blindfold (withdiscussion). Statistical Analysis and Data Mining 8(4), 203–225.</p>
+<p>Wickham, H., D. Cook, H. Hofmann, and A. Buja (2011). tourr: An r package for exploring multivariate data withprojections. Journal of Statistical Software 40(2), <a href="http://www.jstatsoft.org/v40" class="uri">http://www.jstatsoft.org/v40</a>.</p>
+<p>Asimov D (1985). “The Grand Tour: A Tool for Viewing Multidimensional Data.” SIAM Journal of Scientific and Statistical Computing, 6(1), 128–143.</p>
+</div>
+</div>
+<div id="high-dimensional-data" class="section level3">
+<h3>High Dimensional Data</h3>
+<p>Let ‘high dimensional’ refer to any data set with more than 3 numeric variables. Dimensions in this definition are rarely space or time. Such multivariate data are still interpretable in mathematics and numbers, but their visualization is not trivial.</p>
+<div id="flea-data-set" class="section level4">
+<h4>flea Data Set</h4>
+<p>6 measurements taken between 3 different species of flea-beetles. 74 observations arcoss 6 dimensions and species. Below species controls the color and point type, but is unknown to the methods. Available with the <code>tourr</code> package.</p>
+<pre class="r"><code>library(tourr)
+f &lt;- flea[, 1:6]
+f.col &lt;- rainbow(length(unique(flea$species)))[as.numeric(as.factor(flea$species))]
+f.pch &lt;- as.numeric(flea$species)+14
+
+
+### Tourr
+f.holes &lt;- save_history(f, guided_tour(index = holes), max_bases = 25)</code></pre>
+<pre><code>## Value 0.698 104.9% better (0.781 away) - NEW BASIS
+## Value 0.634 86.1% better (0.781 away) - NEW BASIS
+## Value 0.782 23.4% better (0.781 away) - NEW BASIS
+## Value 0.827 5.7% better (0.338 away) - NEW BASIS
+## Value 0.858 3.8% better (0.297 away) - NEW BASIS
+## Value 0.866 0.8% better (0.190 away) - NEW BASIS
+## Value 0.879 1.5% better (0.202 away) - NEW BASIS
+## Value 0.884 0.6% better (0.125 away) - NEW BASIS
+## Value 0.893 1.1% better (0.436 away) - NEW BASIS
+## Value 0.894 0.1% better (0.036 away)
+## Value 0.896 0.3% better (0.113 away) - NEW BASIS
+## Value 0.898 0.3% better (0.091 away) - NEW BASIS
+## Value 0.900 0.1% better (0.061 away) - NEW BASIS
+## Value 0.904 0.5% better (0.131 away) - NEW BASIS
+## Value 0.904 0.0% better (0.034 away)
+## Value 0.906 0.2% better (0.111 away) - NEW BASIS
+## Value 0.906 0.0% better (0.029 away)
+## Value 0.907 0.1% better (0.041 away)
+## Value 0.909 0.3% better (0.127 away) - NEW BASIS
+## Value 0.910 0.1% better (0.064 away)
+## Value 0.909 0.0% better (0.033 away)
+## Value 0.910 0.1% better (0.061 away)
+## Value 0.910 0.2% better (0.082 away) - NEW BASIS
+## Value 0.911 0.1% better (0.082 away)
+## Value 0.911 0.1% better (0.067 away)
+## Value 0.911 0.1% better (0.046 away)
+## Value 0.911 0.0% better (0.034 away)
+## Value 0.912 0.2% better (0.098 away) - NEW BASIS
+## Value 0.913 0.1% better (0.068 away) - NEW BASIS
+## Value 0.914 0.1% better (0.060 away)
+## Value 0.913 0.0% better (0.026 away)
+## Value 0.913 0.0% better (0.030 away)
+## Value 0.913 0.0% better (0.031 away)
+## Value 0.914 0.1% better (0.040 away)
+## Value 0.913 0.0% better (0.029 away)
+## Value 0.914 0.1% better (0.078 away)
+## Value 0.914 0.1% better (0.041 away)
+## Value 0.914 0.1% better (0.043 away)
+## Value 0.913 0.0% better (0.032 away)
+## Value 0.914 0.1% better (0.065 away)
+## Value 0.914 0.1% better (0.084 away) - NEW BASIS
+## Value 0.914 0.0% better (0.012 away)
+## Value 0.915 0.0% better (0.053 away)
+## Value 0.914 0.0% better (0.018 away)
+## Value 0.915 0.0% better (0.035 away)
+## Value 0.915 0.0% better (0.029 away)
+## Value 0.914 0.0% better (0.023 away)
+## Value 0.915 0.0% better (0.027 away)
+## Value 0.914 0.0% better (0.018 away)
+## Value 0.914 0.0% better (0.018 away)
+## Value 0.914 0.0% better (0.028 away)
+## Value 0.915 0.0% better (0.023 away)
+## Value 0.915 0.0% better (0.029 away)
+## Value 0.915 0.1% better (0.067 away)
+## Value 0.914 0.0% better (0.033 away)
+## Value 0.915 0.0% better (0.044 away)
+## Value 0.915 0.0% better (0.033 away)
+## Value 0.915 0.0% better (0.028 away)
+## Value 0.914 0.0% better (0.019 away)
+## Value 0.914 0.0% better (0.015 away)
+## Value 0.915 0.0% better (0.040 away)
+## Value 0.915 0.0% better (0.026 away)
+## Value 0.914 0.0% better (0.016 away)
+## Value 0.915 0.0% better (0.038 away)
+## Value 0.914 0.0% better (0.022 away)
+## No better bases found after 25 tries.  Giving up.
+## Final projection: 
+## 0.679  -0.042  
+## 0.030  0.383  
+## 0.007  0.489  
+## -0.070  0.505  
+## 0.730  0.083  
+## -0.018  0.592</code></pre>
+<pre class="r"><code>f.holes_end &lt;- matrix(as.numeric(f.holes[,,dim(f.holes)[3]]),ncol=2)
+
+### PCA
+f.pca &lt;- prcomp(f, center = TRUE, scale. = TRUE)
+f.v = round(sum(f.pca[[1]][1:2]) / sum(f.pca[[1]]),3)
+f.main = paste(100*f.v,&quot;% of var~ PC1,2&quot;)
+
+plot(f.pca, type = &quot;l&quot;)</code></pre>
+<p><img src="poster_files/figure-html/init-1.png" width="672" /></p>
+<pre class="r"><code>sum(f.pca[[1]][5:6]) / sum(f.pca[[1]]) #last 2 removes 14.83% of the variation.</code></pre>
+<pre><code>## [1] 0.148394</code></pre>
+<pre class="r"><code>sum(f.pca[[1]][1:2]) / sum(f.pca[[1]]) #first 2 contains: 59.25% of the variation.</code></pre>
+<pre><code>## [1] 0.5925214</code></pre>
+</div>
+<div id="comparing-pca-with-holes-tour" class="section level4">
+<h4>Comparing PCA with holes tour</h4>
+<pre class="r"><code>par(mfrow=c(1,2))
+plot(f.pca$x, col=f.col, pch=f.pch, xaxt=&#39;n&#39;,
+     yaxt=&#39;n&#39;, ann=F, space=0)
+title(main=f.main, line=1)
+segments(0, 0, f.pca$rotation[,1], f.pca$rotation[,2], col=&quot;grey50&quot;)
+text(f.pca$rotation[,1], f.pca$rotation[,2], label = names(f), col = &quot;grey50&quot;)
+animate(f, start=f.holes_end, max_frames=0,
+        display = display_xy(pch=f.pch, col=f.col))
+title(main=&quot;holes tour&quot;, line=1)</code></pre>
+<p><img src="poster_files/figure-html/PCA%20and%20tour-1.png" width="672" /></p>
+<pre class="r"><code>par(mfrow=c(1,1))</code></pre>
+<p>For the most part, PCA 1 and 2 is close to the holes guided tour. We can see from the data and the original axis that the main difference is location of the green and blue species. if we rotate across the x=y diagonal the results are similar.</p>
+</div>
+<div id="t-sne" class="section level4">
+<h4>t-SNE</h4>
+<pre class="r"><code>library(Rtsne)
+#perplexity is k neighbors.
+f.tsne &lt;- Rtsne(f, dims = 6, perplexity=15, verbose=TRUE, max_iter = 500)</code></pre>
+<pre><code>## Read the 74 x 6 data matrix successfully!
+## Using no_dims = 6, perplexity = 15.000000, and theta = 0.500000
+## Computing input similarities...
+## Normalizing input...
+## Building tree...
+##  - point 0 of 74
+## Done in 0.00 seconds (sparsity = 0.716947)!
+## Learning embedding...
+## Iteration 50: error is 45.878947 (50 iterations in 0.12 seconds)
+## Iteration 100: error is 46.056458 (50 iterations in 0.10 seconds)
+## Iteration 150: error is 46.059878 (50 iterations in 0.10 seconds)
+## Iteration 200: error is 45.795137 (50 iterations in 0.10 seconds)
+## Iteration 250: error is 42.756304 (50 iterations in 0.09 seconds)
+## Iteration 300: error is 0.572130 (50 iterations in 0.10 seconds)
+## Iteration 350: error is 0.138229 (50 iterations in 0.10 seconds)
+## Iteration 400: error is 0.112664 (50 iterations in 0.09 seconds)
+## Iteration 450: error is 0.107123 (50 iterations in 0.09 seconds)
+## Iteration 500: error is 0.104119 (50 iterations in 0.08 seconds)
+## Fitting performed in 0.98 seconds.</code></pre>
+<pre class="r"><code>colnames(f.tsne$Y) &lt;- paste0(&quot;tS&quot;,1:6)
+plot(f.tsne$Y, col=f.col, pch=f.pch,
+     main=&quot;t-SNE&quot;, line=1, xaxt=&#39;n&#39;, yaxt=&#39;n&#39;, xlab=&#39;&#39;, ylab=&#39;&#39;)</code></pre>
+<p><img src="poster_files/figure-html/t-SNE-1.png" width="672" /></p>
+<p>Can look outstanding and spread groups the furthest! At what cost?</p>
+<ul>
+<li>Loss of repreducability even after <code>set.seed(n)</code>, t-SNE can look completle different every time.</li>
+<li>Loss of interprebility to the real dimension space! The non-linear manipulation has left us with no map to real space!</li>
+</ul>
+<p><strong>Non-starter for analysis</strong></p>
+<p>It looks nice, and can use it for GUIs and illustration, more of a graphical display of categorical classification.</p>
+<pre class="r"><code>set.seed(5)
+par(mfrow=c(3,3))
+for (i in 1:9) {
+  f.tsne &lt;- Rtsne(f, dims = 6, perplexity=15, verbose=TRUE, max_iter = 500)
+  colnames(f.tsne$Y) &lt;- paste0(&quot;tS&quot;,1:6)
+  plot(f.tsne$Y, col=f.col, pch=f.pch, xaxt=&#39;n&#39;, yaxt=&#39;n&#39;, ann=FALSE)
+  title(main=paste(&quot;t-SNE &quot;,i))
+}</code></pre>
+<pre><code>## Read the 74 x 6 data matrix successfully!
+## Using no_dims = 6, perplexity = 15.000000, and theta = 0.500000
+## Computing input similarities...
+## Normalizing input...
+## Building tree...
+##  - point 0 of 74
+## Done in 0.00 seconds (sparsity = 0.716947)!
+## Learning embedding...
+## Iteration 50: error is 46.351535 (50 iterations in 0.12 seconds)
+## Iteration 100: error is 46.521652 (50 iterations in 0.08 seconds)
+## Iteration 150: error is 47.645556 (50 iterations in 0.08 seconds)
+## Iteration 200: error is 47.300615 (50 iterations in 0.08 seconds)
+## Iteration 250: error is 45.538745 (50 iterations in 0.09 seconds)
+## Iteration 300: error is 0.397372 (50 iterations in 0.08 seconds)
+## Iteration 350: error is 0.117472 (50 iterations in 0.09 seconds)
+## Iteration 400: error is 0.109061 (50 iterations in 0.08 seconds)
+## Iteration 450: error is 0.108030 (50 iterations in 0.08 seconds)
+## Iteration 500: error is 0.106116 (50 iterations in 0.08 seconds)
+## Fitting performed in 0.88 seconds.</code></pre>
+<pre><code>## Read the 74 x 6 data matrix successfully!
+## Using no_dims = 6, perplexity = 15.000000, and theta = 0.500000
+## Computing input similarities...
+## Normalizing input...
+## Building tree...
+##  - point 0 of 74
+## Done in 0.00 seconds (sparsity = 0.716947)!
+## Learning embedding...
+## Iteration 50: error is 47.975400 (50 iterations in 0.09 seconds)
+## Iteration 100: error is 45.392066 (50 iterations in 0.08 seconds)
+## Iteration 150: error is 47.031297 (50 iterations in 0.08 seconds)
+## Iteration 200: error is 47.311934 (50 iterations in 0.08 seconds)
+## Iteration 250: error is 45.067836 (50 iterations in 0.07 seconds)
+## Iteration 300: error is 0.856679 (50 iterations in 0.07 seconds)
+## Iteration 350: error is 0.156494 (50 iterations in 0.07 seconds)
+## Iteration 400: error is 0.107284 (50 iterations in 0.08 seconds)
+## Iteration 450: error is 0.103297 (50 iterations in 0.07 seconds)
+## Iteration 500: error is 0.102911 (50 iterations in 0.07 seconds)
+## Fitting performed in 0.75 seconds.</code></pre>
+<pre><code>## Read the 74 x 6 data matrix successfully!
+## Using no_dims = 6, perplexity = 15.000000, and theta = 0.500000
+## Computing input similarities...
+## Normalizing input...
+## Building tree...
+##  - point 0 of 74
+## Done in 0.00 seconds (sparsity = 0.716947)!
+## Learning embedding...
+## Iteration 50: error is 44.874718 (50 iterations in 0.09 seconds)
+## Iteration 100: error is 45.245205 (50 iterations in 0.07 seconds)
+## Iteration 150: error is 47.852776 (50 iterations in 0.08 seconds)
+## Iteration 200: error is 46.162415 (50 iterations in 0.08 seconds)
+## Iteration 250: error is 44.455184 (50 iterations in 0.08 seconds)
+## Iteration 300: error is 0.883141 (50 iterations in 0.07 seconds)
+## Iteration 350: error is 0.154951 (50 iterations in 0.07 seconds)
+## Iteration 400: error is 0.119682 (50 iterations in 0.08 seconds)
+## Iteration 450: error is 0.112505 (50 iterations in 0.07 seconds)
+## Iteration 500: error is 0.107106 (50 iterations in 0.08 seconds)
+## Fitting performed in 0.77 seconds.</code></pre>
+<pre><code>## Read the 74 x 6 data matrix successfully!
+## Using no_dims = 6, perplexity = 15.000000, and theta = 0.500000
+## Computing input similarities...
+## Normalizing input...
+## Building tree...
+##  - point 0 of 74
+## Done in 0.00 seconds (sparsity = 0.716947)!
+## Learning embedding...
+## Iteration 50: error is 46.785319 (50 iterations in 0.09 seconds)
+## Iteration 100: error is 45.010484 (50 iterations in 0.08 seconds)
+## Iteration 150: error is 45.189380 (50 iterations in 0.08 seconds)
+## Iteration 200: error is 45.593067 (50 iterations in 0.09 seconds)
+## Iteration 250: error is 46.544669 (50 iterations in 0.08 seconds)
+## Iteration 300: error is 1.053003 (50 iterations in 0.06 seconds)
+## Iteration 350: error is 0.163432 (50 iterations in 0.06 seconds)
+## Iteration 400: error is 0.115747 (50 iterations in 0.07 seconds)
+## Iteration 450: error is 0.108472 (50 iterations in 0.08 seconds)
+## Iteration 500: error is 0.105080 (50 iterations in 0.08 seconds)
+## Fitting performed in 0.76 seconds.</code></pre>
+<pre><code>## Read the 74 x 6 data matrix successfully!
+## Using no_dims = 6, perplexity = 15.000000, and theta = 0.500000
+## Computing input similarities...
+## Normalizing input...
+## Building tree...
+##  - point 0 of 74
+## Done in 0.00 seconds (sparsity = 0.716947)!
+## Learning embedding...
+## Iteration 50: error is 47.004536 (50 iterations in 0.08 seconds)
+## Iteration 100: error is 46.255053 (50 iterations in 0.08 seconds)
+## Iteration 150: error is 46.056769 (50 iterations in 0.07 seconds)
+## Iteration 200: error is 47.237876 (50 iterations in 0.08 seconds)
+## Iteration 250: error is 46.587640 (50 iterations in 0.08 seconds)
+## Iteration 300: error is 0.940378 (50 iterations in 0.09 seconds)
+## Iteration 350: error is 0.142342 (50 iterations in 0.06 seconds)
+## Iteration 400: error is 0.110783 (50 iterations in 0.07 seconds)
+## Iteration 450: error is 0.108028 (50 iterations in 0.07 seconds)
+## Iteration 500: error is 0.104707 (50 iterations in 0.07 seconds)
+## Fitting performed in 0.75 seconds.</code></pre>
+<pre><code>## Read the 74 x 6 data matrix successfully!
+## Using no_dims = 6, perplexity = 15.000000, and theta = 0.500000
+## Computing input similarities...
+## Normalizing input...
+## Building tree...
+##  - point 0 of 74
+## Done in 0.00 seconds (sparsity = 0.716947)!
+## Learning embedding...
+## Iteration 50: error is 45.633092 (50 iterations in 0.09 seconds)
+## Iteration 100: error is 45.125497 (50 iterations in 0.09 seconds)
+## Iteration 150: error is 47.222756 (50 iterations in 0.09 seconds)
+## Iteration 200: error is 46.321008 (50 iterations in 0.09 seconds)
+## Iteration 250: error is 46.492404 (50 iterations in 0.09 seconds)
+## Iteration 300: error is 1.110701 (50 iterations in 0.08 seconds)
+## Iteration 350: error is 0.182332 (50 iterations in 0.07 seconds)
+## Iteration 400: error is 0.121562 (50 iterations in 0.08 seconds)
+## Iteration 450: error is 0.109985 (50 iterations in 0.09 seconds)
+## Iteration 500: error is 0.110138 (50 iterations in 0.08 seconds)
+## Fitting performed in 0.85 seconds.</code></pre>
+<pre><code>## Read the 74 x 6 data matrix successfully!
+## Using no_dims = 6, perplexity = 15.000000, and theta = 0.500000
+## Computing input similarities...
+## Normalizing input...
+## Building tree...
+##  - point 0 of 74
+## Done in 0.00 seconds (sparsity = 0.716947)!
+## Learning embedding...
+## Iteration 50: error is 44.608054 (50 iterations in 0.09 seconds)
+## Iteration 100: error is 44.806725 (50 iterations in 0.07 seconds)
+## Iteration 150: error is 46.205342 (50 iterations in 0.08 seconds)
+## Iteration 200: error is 50.432502 (50 iterations in 0.07 seconds)
+## Iteration 250: error is 47.521741 (50 iterations in 0.08 seconds)
+## Iteration 300: error is 0.691850 (50 iterations in 0.08 seconds)
+## Iteration 350: error is 0.142209 (50 iterations in 0.07 seconds)
+## Iteration 400: error is 0.111600 (50 iterations in 0.07 seconds)
+## Iteration 450: error is 0.107512 (50 iterations in 0.07 seconds)
+## Iteration 500: error is 0.105165 (50 iterations in 0.07 seconds)
+## Fitting performed in 0.76 seconds.</code></pre>
+<pre><code>## Read the 74 x 6 data matrix successfully!
+## Using no_dims = 6, perplexity = 15.000000, and theta = 0.500000
+## Computing input similarities...
+## Normalizing input...
+## Building tree...
+##  - point 0 of 74
+## Done in 0.00 seconds (sparsity = 0.716947)!
+## Learning embedding...
+## Iteration 50: error is 45.359603 (50 iterations in 0.09 seconds)
+## Iteration 100: error is 45.641561 (50 iterations in 0.08 seconds)
+## Iteration 150: error is 43.450039 (50 iterations in 0.08 seconds)
+## Iteration 200: error is 46.482641 (50 iterations in 0.07 seconds)
+## Iteration 250: error is 44.308546 (50 iterations in 0.08 seconds)
+## Iteration 300: error is 0.405673 (50 iterations in 0.08 seconds)
+## Iteration 350: error is 0.178574 (50 iterations in 0.06 seconds)
+## Iteration 400: error is 0.114622 (50 iterations in 0.07 seconds)
+## Iteration 450: error is 0.110850 (50 iterations in 0.08 seconds)
+## Iteration 500: error is 0.107463 (50 iterations in 0.08 seconds)
+## Fitting performed in 0.76 seconds.</code></pre>
+<pre><code>## Read the 74 x 6 data matrix successfully!
+## Using no_dims = 6, perplexity = 15.000000, and theta = 0.500000
+## Computing input similarities...
+## Normalizing input...
+## Building tree...
+##  - point 0 of 74
+## Done in 0.00 seconds (sparsity = 0.716947)!
+## Learning embedding...
+## Iteration 50: error is 46.465460 (50 iterations in 0.08 seconds)
+## Iteration 100: error is 46.497830 (50 iterations in 0.08 seconds)
+## Iteration 150: error is 45.270884 (50 iterations in 0.07 seconds)
+## Iteration 200: error is 46.265441 (50 iterations in 0.08 seconds)
+## Iteration 250: error is 46.678897 (50 iterations in 0.07 seconds)
+## Iteration 300: error is 1.063153 (50 iterations in 0.06 seconds)
+## Iteration 350: error is 0.181977 (50 iterations in 0.07 seconds)
+## Iteration 400: error is 0.117611 (50 iterations in 0.07 seconds)
+## Iteration 450: error is 0.105988 (50 iterations in 0.07 seconds)
+## Iteration 500: error is 0.104589 (50 iterations in 0.08 seconds)
+## Fitting performed in 0.74 seconds.</code></pre>
+<p><img src="poster_files/figure-html/t-SNE%20differs-1.png" width="672" /></p>
+<pre class="r"><code>set.seed(Sys.time()) #random seed
+par(mfrow=c(1,1))</code></pre>
+</div>
+<div id="across-method" class="section level4">
+<h4>Across method</h4>
+<pre class="r"><code>par(mfrow=c(1,3))
+animate(f.pca$x, max_frames=0,
+        display = display_xy(pch=f.pch, col=f.col))
+title(main=&quot;PCA1,2&quot;, line=1)
+animate(f.tsne$Y, max_frames=0,
+        display = display_xy(pch=f.pch, col=f.col))
+title(main=&quot;t-SNE1,2&quot;, line=1)
+animate(f, start=f.holes_end, max_frames=0,
+        display = display_xy(pch=f.pch, col=f.col))
+title(main=&quot;holes tour&quot;, line=1)</code></pre>
+<p><img src="poster_files/figure-html/across%20method-1.png" width="672" /></p>
+<pre class="r"><code>par(mfrow=c(1,1))</code></pre>
+<p>Side-by-side representation across methodology. Results from a single frame from <code>tourr::animate()</code> for comparison. Also note PCA and t-SNE have 6 dim of data. PCA has implicit order; descending variation. Viewing <code>pairs()</code> or <code>tourr::animate()</code> quickly shows us that t-SNE1,2 is not the optimal 2D projection. We could put t_SNE through PCA or the holes tour to reorient.</p>
+</div>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
