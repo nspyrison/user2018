@@ -1,0 +1,339 @@
+---
+title: "tourr; visualizing higher dimensions vs alternatives"
+author: "--- NS Spyrison, Monash University"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    self_contained: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo       = FALSE,  #code
+  include    = TRUE,   #plots
+  results    = "hide", #text 'markup' 'asis' 'hold' 'hide' 
+  message    = FALSE,  #messages
+  warning    = FALSE,  #warnings
+  error      = FALSE,  #errors
+  collapse   = TRUE,
+  #comment    = "",
+  #fig.height = 8,
+  #fig.width  = 12,
+  #fig.align  = "center",
+  fig.show = "hold",
+  strip.white = TRUE,
+  cache      = FALSE
+)
+
+#devtools::install_github("nspyrison/spinifex")
+library(spinifex) #interferes with ggplot2?! load before ggplot2
+library(knitr)
+library(tourr)
+library(Rtsne)
+library(tibble)
+library(ggplot2)
+#library(cowplot)
+library(magrittr)
+library(gridExtra)
+library(flexdashboard)
+```
+
+```{r code for PCA, t-SNE, Tour}
+### PCA
+f <- flea[, 1:6]
+f.pca <- stats::prcomp(f, center = TRUE, scale. = TRUE)
+
+dat <- as.data.frame(f.pca$x) %>% scale()
+dat[,1] <- dat[,1]/max(abs(dat[,1]))
+dat[,2] <- dat[,2]/max(abs(dat[,2]))
+dat %<>% as.data.frame() %>%  cbind("Species" = flea[,7])
+gg3 <- ggplot(dat, aes(x = PC1, y = PC2, shape = Species, col = Species)) +
+  geom_point(size = 2) + ggtitle("PCA") + coord_fixed() + 
+  theme(legend.position = c(.5,.5), 
+        legend.background=element_rect(colour ="darkgray") )
+
+### PCA pdf, cdf
+dat <- as.data.frame(
+  cbind("PC"=1:6,
+    "Var"=f.pca$sdev, 
+    "Prop_Var"= f.pca$sdev/sum(f.pca$sdev),
+    "cumsum_Prop_Var"= cumsum(f.pca$sdev)/sum(f.pca$sdev)
+  )
+)
+gg1 <- ggplot(dat,aes(x=PC,y=Prop_Var,label=round(Prop_Var, 2))) + 
+  geom_point(size = 1) + geom_line() + ggtitle("~pmf, Prop Var") + 
+  geom_text(nudge_x = 0.3, nudge_y = .02) +
+  labs(x="", y="Prop Var") +
+  geom_ribbon(data=dat[-1, ], aes(x=PC, ymin=0, ymax=Prop_Var), 
+              fill = "red", alpha = .2)
+gg2 <- ggplot(dat,aes(x=PC,y=cumsum_Prop_Var,label=round(cumsum_Prop_Var, 2))) +
+  geom_point(size = 1) + geom_line() + ggtitle("~cmf, Cml Prop Var") + 
+  geom_text(nudge_x = 0.7, nudge_y = 0) +
+  labs(x="", y="Cml Prop Var") +
+  geom_ribbon(data=dat[-1, ], aes(x=PC, ymin=cumsum_Prop_Var, ymax=1), 
+              fill = "red", alpha = .2)
+#gridExtra::grid.arrange(gg1, gg2, ncol = 2)
+
+
+### t-SNE + PCA
+#perplexity is knn. ~.9 sec for [74x6]
+f.tsne <- Rtsne(f, dims = 6, perplexity=15, verbose=TRUE, max_iter = 500) 
+colnames(f.tsne$Y) <- paste0("tS",1:6)
+# t-SNE is not inherently ordered, so let's do PCA on it.
+
+f.tsne.pca <- stats::prcomp(f.tsne$Y, center = TRUE, scale. = TRUE)
+colnames(f.tsne.pca$x) <- paste0("tSNE_PC",1:6)
+dat <- as.data.frame(f.tsne.pca$x) %>% scale()
+dat[,1] <- dat[,1]/max(abs(dat[,1]))
+dat[,2] <- dat[,2]/max(abs(dat[,2]))
+dat %<>% as.data.frame() %>% cbind("Species" = flea[,7])
+gg4 <- ggplot(dat, aes(x = tSNE_PC1, y = tSNE_PC2, 
+                        shape = Species, col = Species) ) +
+  geom_point(size = 2) + ggtitle("t-SNE %>% PCA") + coord_fixed() + 
+  theme(legend.position = 'none')
+
+
+### Holes Tourr
+f.col <- rainbow(length(unique(flea$species)))[as.numeric(as.factor(flea$species))]
+f.pch <- as.numeric(flea$species)+14
+
+f.holes <- save_history(f, guided_tour(index = holes), max_bases = 25)
+f.holes_end <- matrix(as.numeric(f.holes[,,dim(f.holes)[3]]),ncol=2)
+
+dat <- as.data.frame(f) %>% scale()
+dat <- (as.matrix(dat) %*% f.holes_end) %>% as.data.frame()
+dat[,1] <- dat[,1]/max(abs(dat[,1]))
+dat[,2] <- dat[,2]/max(abs(dat[,2]))
+colnames(dat) <- c("x", "y")
+dat %<>% cbind("Species" = flea[,7])
+gg5 <- ggplot(dat, aes(x = x, y = y, 
+                        shape = Species, col = Species)) +
+  geom_point(size = 2) + ggtitle("Tour, holes index") + coord_fixed() + 
+  theme(legend.position = 'none')
+
+
+### method comparison
+Method <- c("PCA", "t-SNE", "Tour, holes")
+Interoperable <- c(T, F, T) 
+Lossy <- c(T, NA, F)
+Global <- c(T, F, T)
+Overfitable <- c(F, T, F)
+NonLinearData <- c(F, T, F)
+
+MethodComparison <- as.data.frame(cbind(Method, Interoperable, Lossy, Global, Overfitable, NonLinearData) )
+```
+
+Column {data-width=300}
+-----------------------------------------------------------------------
+
+### Overview {data-height=700}
+Visualizing in higher dimension space can be messy and unintuitive (Hilbert space,  $\mathbb{R}^p,~~p>3$, where p are numeric variables). Analysis of higher dimensions must be interpretable in terms of the original dimensions and ideally utilizes all of the information in the data. 
+
+To these ends we advise the use of projection pursuit as acheived in the R package `tourr`(2011, H Wickham & D Cook). Furthere, we impliment  a method for manual controls following D. Cook, & A. Buja (1997) in an R package `spinifex`, currently available with `devtools::install_github("nspyrison/spinifex")`. We also compare and contrast alternative methodolgy; namely Principal Component Analysis (PCA, 1901 K. Person), T-distributed Stochastic Neighbor Embedding (t-SNE, 2008 L van derMaaten & G Hinton), and holes ompimized tour (an application of projection pursuit, 1974 J Friedman & J Tukey). Grand Tour purposed D Asimov (1985).
+
+The R package, `tourr` (2011, H Wickham & D Cook), gives a means to animate 2-d projections of rotated p-dimensional data object. The path of rotation may take the form of a random walk, predefined path, or optimizing an index by ("semi-"stochastic) gradient descent (Projection Pursuit, described above). 
+
+<!-- Once an interesting projection as been identified the local area should be explored. `spinifex` gives a means to control each variable's contribution to the given projection.  -->
+
+$Work~in~progress,~~TODO:~add~to,~cleanup$
+<!-- TODO: ADD MORE -->
+
+
+### References {data-height=700}
+H. Wickham, D. Cook, H. Hofmann, and A. Buja (2011). tourr: An r package for exploring multivariate data with projections. Journal of Statistical Software 40(2), http://www.jstatsoft.org/v40.
+
+D. Asimov (1985). The grand tour: a tool for viewing multidimensional data. SIAM Journal on Scientific and Statistical Computing, 6(1), 128–143.
+
+D. Cook, & A. Buja (1997). Manual Controls for High-Dimensional Data Projections. Journal of Computational and Graphical Statistics, 6(4), 464–480. https://doi.org/10.2307/1390747
+
+H. Wickham, D. Cook, and H. Hofmann (2015). Visualising statistical models: Removing the blindfold (withdiscussion). Statistical Analysis and Data Mining 8(4), 203–225.
+
+<!-- G Grinstein, M Trutschl, & U Cvek (2002). High-Dimensional Visualizations. psu.edu. -->
+
+
+**Thanks**
+
+Prof. Dianne Cook - Guidance, inspiration, and contributions to projection pursuit
+
+Dr. Ursula Laa - Collaboration, use cases, and development feedback
+
+**Other reading ** 
+
+<center>
+[Principal Component Analysis](https://en.wikipedia.org/wiki/Principal_component_analysis)
+ ------ [t-distributed Stochastic Neighbor Embedding](https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding)  
+[Projection pursuit](https://en.wikipedia.org/wiki/Projection_pursuit)
+ ------ [Grand Tour](https://en.wikipedia.org/wiki/Grand_Tour_(data_visualisation))
+ ------ [Spinifix Hopping Mouse](https://en.wikipedia.org/wiki/Spinifex_hopping_mouse)
+</center>
+
+
+Column {.tabset}
+-----------------------------------------------------------------------
+
+### Tourr
+
+```{r}
+# load("PhysDat_6PC.rda")
+# load("fGT_6d.rda")
+# 
+# animate(PhysDat[, 1:6], planned_tour(fGT_6d), 
+#         display_groupxy(col = PhysDat$disID, group_by=PhysDat$disID, 
+#                         gp_legend = FALSE)
+#         )
+```
+```{r, results="hold"}
+knitr::include_graphics("./PhysGrandTour.gif")
+```
+
+
+### Spinifex
+
+$TODO:~scale~output~of~spinifex::proj_data(),~case~handling~for~spinifex::slideshow(),~apply~Phys~data.$
+
+```{r, eval=TRUE, echo=FALSE, results='asis'}
+data <- flea[, 1:6]
+p <- ncol(data)
+r_basis <- create_random_basis(p = p)
+pal <- rainbow(length(levels(flea$species)))
+col <- pal[as.numeric(flea$species)]
+pch <- flea$species
+
+proj <-
+  proj_data(
+    data = data,
+    basis = r_basis,
+    manip_var = 1,
+    manip_type = "rad",
+    phi_from = 0,
+    phi_to = 2*pi,
+    n_slides = 20
+  )
+slideshow(proj, col = col)
+
+
+####
+# phys.end <- matrix(as.numeric(fGT_6d[,,dim(fGT_6d)[3]]),ncol=2)
+# 
+# pal <- rainbow(length(levels(PhysDat$disID)))
+# col <- pal[as.numeric(PhysDat$disID)]
+# pch <- as.character(PhysDat$disID)
+# 
+# proj <-
+#   proj_data(
+#     data = PhysDat[, 1:6],
+#     basis = phys.end,
+#     manip_var = 1,
+#     manip_type = "rad",
+#     phi_from = 0,
+#     phi_to = 2*pi,
+#     n_slides = 20
+#   )
+# slideshow(proj, col = col, pch=pch)
+```
+
+### PCA, t-SNE, PP
+
+```{r, eval=TRUE, echo=FALSE, results='hold'}
+kable(MethodComparison)
+```
+
+```{r results="hold", fig.align  = "bottom"}
+knitr::include_graphics("./methodCompare.png")
+#tmp <- ggplot_gtable(ggplot_build(gg3))
+#leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+#legend <- tmp$grobs[[leg]]
+#
+##plot_grid(gg3 + theme(legend.position = 'none', plot.margin = margin(0,0,0,0)),
+##          gg4 + theme(legend.position = 'none', plot.margin = margin(0,0,0,0)),
+##          gg5 + theme(legend.position = 'none', plot.margin = margin(0,0,0,0)), 
+##          legend, ncol=3)
+#
+#grid.arrange(gg3 + theme(legend.position = 'none') + xlim(-1, 1) + ylim(-1, 1),
+#             gg4 + theme(legend.position = 'none') + xlim(-1, 1) + ylim(-1, 1),
+#             gg5 + theme(legend.position = 'none') + xlim(-1, 1) + ylim(-1, 1),
+#             legend,
+#             ncol=3, nrow=2)
+```
+
+_ 
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+
+```{r, eval=FALSE, echo=TRUE}
+f.pca <- stats::prcomp(flea)
+ggplot2::ggplot(f.pca) + ...
+
+f.tsne <- Rtsne(f, ...)
+f.tsne.pca <- stats::prcomp(f.tsne)
+ggplot2::ggplot(f.tsne.pca) + ...
+
+f.holes_end <- tourr::animate_xy(flea, guided_tour(index = holes))
+ggplot2::ggplot(f.holes_end) + ...
+```
+
+**Data set - flea**
+Consists of 74 observations of 6 length measurements taken across 3 different species of flea-beetles. Within the graphics species is used to select color and point character, but the methods are discused are all unsupervized (they can't use species). Data from A Lubischew (1962), Analogous to R Fisher's Iris data [100x5] (1936). The flea dataset is available in the `tourr` and `spinifex` R packages.
+
+<!-- ### Next tab -->
+
+<!-- some stuff here -->
+
+<!-- ```{r, results="hold"} -->
+
+<!-- ``` -->
+
+### PCA Lossiness
+
+```{r}
+load("PhysPCA.rda")
+
+gg1.2 <- ggplot(PhysPCA, aes(x=PC, y=propVar)) + 
+  geom_point(size = 1) + geom_line() +
+  geom_ribbon(data=PhysPCA[-1:-5, ], aes(x=PC, ymin=0, ymax=propVar), 
+              fill = "red", alpha = .2) +
+  labs(x="Principal Component", y="Prop Var")
+
+gg2.2 <- ggplot(PhysPCA, aes(x=PC, y=cumProp)) + 
+  geom_point(size = 1) + geom_line() +
+  geom_ribbon(data=PhysPCA[-1:-5, ], aes(x=PC, ymin=cumProp, ymax=1), 
+              fill = "red", alpha = .2) +
+  labs(x="Principal Component", y="Cml Prop Var")
+
+gridExtra::grid.arrange(gg1, gg2, gg1.2, gg2.2, ncol=2)
+
+```
