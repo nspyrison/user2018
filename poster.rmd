@@ -1,5 +1,5 @@
 ---
-title: "High Dimension Visualizations"
+title: "tourr; visualizing higher dimensions vs alternatives"
 author: "NS Spyrison"
 date: "July 2018"
 output: 
@@ -7,6 +7,7 @@ output:
    self_contained: no
 ---
 #**NOTE: Graphics of tourr::animate make it to the figures folder, but not into the .html document!!**
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
@@ -63,10 +64,10 @@ f.pca <- stats::prcomp(f, center = TRUE, scale. = TRUE)
 
 dat <- as.data.frame(f.pca$x) %>% cbind("Species" = flea[,7])
 (gg3 <- ggplot(dat, aes(x = PC1, y = PC2, shape = Species, col = Species)) +
-  geom_point(size = 3) + ggtitle("PC1 by PC2 across Species") + 
+  geom_point(size = 3) + ggtitle("PC1 by PC2") + 
   theme(legend.position = c(.945, .88), 
         legend.background=element_rect(colour ="darkgray")
-  )
+  ) + coord_fixed()
 )
 ```
 
@@ -118,10 +119,10 @@ colnames(f.tsne.pca$x) <- paste0("tSNE_PC",1:6)
 dat <- as.data.frame(f.tsne.pca$x) %>% cbind("Species" = flea[,7])
 (gg4 <- ggplot(dat, aes(x = tSNE_PC1, y = tSNE_PC2, 
                         shape = Species, col = Species)) +
-  geom_point(size = 3) + ggtitle("t-SNE PC1 by PC2 across Species") + 
+  geom_point(size = 3) + ggtitle("t-SNE PC1 by PC2") + 
   theme(legend.position = c(.945, .88), 
         legend.background=element_rect(colour ="darkgray")
-  )
+  ) + coord_fixed()
 )
 ```
 
@@ -155,7 +156,7 @@ dat %<>% cbind("Species" = flea[,7])
   geom_point(size = 3) + ggtitle("Holes index projection pursuit") + 
   theme(legend.position = c(.945, .88), 
         legend.background=element_rect(colour ="darkgray")
-  )
+  ) + coord_fixed()
 )
 ```
 
@@ -199,6 +200,7 @@ f.pca.holes <- save_history(f.pca$x, guided_tour(index = holes), max_bases = 25)
 f.pca.holes_end <- matrix(as.numeric(f.pca.holes[,,dim(f.pca.holes)[3]]),ncol=2)
 
 #show that PCA gives us a good starting orientation for projection pursuit.
+##NEED TO FIX THIS!!!
 par(mfrow=c(1,3))
 animate(f.pca$x, start=f.pca.holes_end, max_frames=0,
         display=display_xy(pch=20, col=f.col))
