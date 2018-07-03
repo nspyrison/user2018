@@ -1,7 +1,9 @@
 #####UseR2018 Datathon
 #https://user2018.r-project.org/datathon/ #datathon
 #https://docs.google.com/forms/d/e/1FAIpQLSe9r5xwi6I0-CpJIDcGBatKmM3UX2IjC7_zlj1_4p42txMGZw/viewform #submission form
+#https://www.ala.org.au/ ##DATA AL
 #https://github.com/AtlasOfLivingAustralia/ALA4R # ala4r
+#https://en.wikipedia.org/wiki/Species_diversity
 
 ###going to common name: 
 #vignette("ALA4R")

@@ -1,5 +1,5 @@
 ---
-title: "tourr; visualizing higher dimensions vs alternatives"
+title: "spinifex, Visualizing higher dimensions"
 author: "--- NS Spyrison, Monash University"
 output: 
   flexdashboard::flex_dashboard:
@@ -43,10 +43,8 @@ library(flexdashboard)
 ### PCA
 f <- flea[, 1:6]
 f.pca <- stats::prcomp(f, center = TRUE, scale. = TRUE)
-
 dat <- as.data.frame(f.pca$x) %>% scale()
-dat[,1] <- dat[,1]/max(abs(dat[,1]))
-dat[,2] <- dat[,2]/max(abs(dat[,2]))
+apply(dat, 2, function(x) (x / max(abs(x))))
 dat %<>% as.data.frame() %>%  cbind("Species" = flea[,7])
 gg3 <- ggplot(dat, aes(x = PC1, y = PC2, shape = Species, col = Species)) +
   geom_point(size = 2) + ggtitle("PCA") + coord_fixed() + 
@@ -85,8 +83,7 @@ colnames(f.tsne$Y) <- paste0("tS",1:6)
 f.tsne.pca <- stats::prcomp(f.tsne$Y, center = TRUE, scale. = TRUE)
 colnames(f.tsne.pca$x) <- paste0("tSNE_PC",1:6)
 dat <- as.data.frame(f.tsne.pca$x) %>% scale()
-dat[,1] <- dat[,1]/max(abs(dat[,1]))
-dat[,2] <- dat[,2]/max(abs(dat[,2]))
+apply(dat, 2, function(x) (x / max(abs(x))))
 dat %<>% as.data.frame() %>% cbind("Species" = flea[,7])
 gg4 <- ggplot(dat, aes(x = tSNE_PC1, y = tSNE_PC2, 
                         shape = Species, col = Species) ) +
@@ -103,8 +100,7 @@ f.holes_end <- matrix(as.numeric(f.holes[,,dim(f.holes)[3]]),ncol=2)
 
 dat <- as.data.frame(f) %>% scale()
 dat <- (as.matrix(dat) %*% f.holes_end) %>% as.data.frame()
-dat[,1] <- dat[,1]/max(abs(dat[,1]))
-dat[,2] <- dat[,2]/max(abs(dat[,2]))
+apply(dat, 2, function(x) (x / max(abs(x))))
 colnames(dat) <- c("x", "y")
 dat %<>% cbind("Species" = flea[,7])
 gg5 <- ggplot(dat, aes(x = x, y = y, 
@@ -115,10 +111,10 @@ gg5 <- ggplot(dat, aes(x = x, y = y,
 
 ### method comparison
 Method <- c("PCA", "t-SNE", "Tour, holes")
-Interoperable <- c(T, F, T) 
-Lossy <- c(T, NA, F)
-Global <- c(T, F, T)
-Overfitable <- c(F, T, F)
+Interpretable <- c(T, F, T) 
+MaxVarRetention <- c(F, NA, T)
+GlobalOptimia  <- c(T, F, F)
+CannotOverfit <- c(T, F, T)
 NonLinearData <- c(F, T, F)
 
 MethodComparison <- as.data.frame(cbind(Method, Interoperable, Lossy, Global, Overfitable, NonLinearData) )
@@ -127,10 +123,11 @@ MethodComparison <- as.data.frame(cbind(Method, Interoperable, Lossy, Global, Ov
 Column {data-width=300}
 -----------------------------------------------------------------------
 
-### Overview {data-height=700}
-Visualizing in higher dimension space can be messy and unintuitive (Hilbert space,  $\mathbb{R}^p,~~p>3$, where p are numeric variables). Analysis of higher dimensions must be interpretable in terms of the original dimensions and ideally utilizes all of the information in the data. 
+<!-- ### Overview {data-height=700} -->
+**Overview**
+Visualizing in higher dimension space can be messy and unintuitive (Euclidean space, $\mathbb{R}^p,~~p>3$, where p are numeric variables). Analysis of higher dimensions must be interpretable in terms of the original dimensions and minimizes the loss of the information held in the data. 
 
-To these ends we advise the use of projection pursuit as acheived in the R package `tourr`(2011, H Wickham & D Cook). Furthere, we impliment  a method for manual controls following D. Cook, & A. Buja (1997) in an R package `spinifex`, currently available with `devtools::install_github("nspyrison/spinifex")`. We also compare and contrast alternative methodolgy; namely Principal Component Analysis (PCA, 1901 K. Person), T-distributed Stochastic Neighbor Embedding (t-SNE, 2008 L van derMaaten & G Hinton), and holes ompimized tour (an application of projection pursuit, 1974 J Friedman & J Tukey). Grand Tour purposed D Asimov (1985).
+To these ends we advise the use of projection pursuit as acheived in the R package `tourr`(2011, H Wickham & D Cook). Furthere, we impliment a method for manual controls following D. Cook, & A. Buja (1997) in an R package `spinifex`, currently available with `devtools::install_github("nspyrison/spinifex")`. We also compare and contrast alternative methodolgy; namely Principal Component Analysis (PCA, 1901 K. Person), T-distributed Stochastic Neighbor Embedding (t-SNE, 2008 L van derMaaten & G Hinton), and holes ompimized tour (an application of projection pursuit, 1974 J Friedman & J Tukey). Grand Tour purposed D Asimov (1985).
 
 The R package, `tourr` (2011, H Wickham & D Cook), gives a means to animate 2-d projections of rotated p-dimensional data object. The path of rotation may take the form of a random walk, predefined path, or optimizing an index by ("semi-"stochastic) gradient descent (Projection Pursuit, described above). 
 
@@ -140,7 +137,14 @@ $Work~in~progress,~~TODO:~add~to,~cleanup$
 <!-- TODO: ADD MORE -->
 
 
-### References {data-height=700}
+**Thanks**
+
+Prof. Dianne Cook - Guidance, inspiration, and contributions to projection pursuit
+
+Dr. Ursula Laa - Collaboration, use cases, and development feedback
+
+**References**
+
 H. Wickham, D. Cook, H. Hofmann, and A. Buja (2011). tourr: An r package for exploring multivariate data with projections. Journal of Statistical Software 40(2), http://www.jstatsoft.org/v40.
 
 D. Asimov (1985). The grand tour: a tool for viewing multidimensional data. SIAM Journal on Scientific and Statistical Computing, 6(1), 128–143.
@@ -151,12 +155,6 @@ H. Wickham, D. Cook, and H. Hofmann (2015). Visualising statistical models: Remo
 
 <!-- G Grinstein, M Trutschl, & U Cvek (2002). High-Dimensional Visualizations. psu.edu. -->
 
-
-**Thanks**
-
-Prof. Dianne Cook - Guidance, inspiration, and contributions to projection pursuit
-
-Dr. Ursula Laa - Collaboration, use cases, and development feedback
 
 **Other reading ** 
 
@@ -190,7 +188,7 @@ knitr::include_graphics("./PhysGrandTour.gif")
 
 ### Spinifex
 
-$TODO:~scale~output~of~spinifex::proj_data(),~case~handling~for~spinifex::slideshow(),~apply~Phys~data.$
+$TODO:~scale~output~of~spinifex::proj\_data(),~case~handling~for~spinifex::slideshow(),~apply~Phys~data.$
 
 ```{r, eval=TRUE, echo=FALSE, results='asis'}
 data <- flea[, 1:6]
@@ -233,7 +231,7 @@ slideshow(proj, col = col)
 # slideshow(proj, col = col, pch=pch)
 ```
 
-### PCA, t-SNE, PP
+### PCA, t-SNE, Holes Tour
 
 ```{r, eval=TRUE, echo=FALSE, results='hold'}
 kable(MethodComparison)
@@ -258,10 +256,6 @@ knitr::include_graphics("./methodCompare.png")
 ```
 
 _ 
-
-_
-
-_
 
 _
 
