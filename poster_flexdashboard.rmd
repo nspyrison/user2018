@@ -1,6 +1,6 @@
 ---
-title: "spinifex, Visualizing higher dimensions"
-author: "--- NS Spyrison, Monash University"
+title: "spinifex: visulizing local structure of higher dimensions"
+author: "--- Nick S Spyrison, Monash University"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
@@ -34,13 +34,12 @@ library(Rtsne)
 library(tibble)
 library(ggplot2)
 library(ggthemes)
-#library(cowplot) #for making plots plain, not graphing
 library(magrittr)
 library(gridExtra)
 library(flexdashboard)
 ```
 
-```{r code for PCA, t-SNE, Tour}
+```{r code for method compare}
 ### PCA
 f <- flea[, 1:6]
 f.pca <- stats::prcomp(f, center = TRUE, scale. = TRUE)
@@ -59,30 +58,30 @@ gg3 <- ggplot(dat, aes(x = PC1, y = PC2, shape = Species, col = Species)) +
 ### PCA pdf, cdf
 dat <- as.data.frame(
   rbind(c(0,0,0,0), 
-    cbind("PC"=1:6,
-      "Var"=f.pca$sdev, 
-      "Prop_Var"= f.pca$sdev/sum(f.pca$sdev),
-      "cumsum_Prop_Var"= cumsum(f.pca$sdev)/sum(f.pca$sdev)
+    cbind("PC" = 1:6,
+      "Var" = f.pca$sdev, 
+      "Prop_Var" = f.pca$sdev/sum(f.pca$sdev),
+      "cumsum_Prop_Var" = cumsum(f.pca$sdev)/sum(f.pca$sdev)
     )
   )
 )
-gg1 <- ggplot(dat[-1,],aes(x=PC,y=Prop_Var,label=round(Prop_Var, 2))) +
-  geom_point(size = 1) + geom_line() + ggtitle("proportional variance by PC") +
-  geom_text(nudge_x = 0.3, nudge_y = .02) +
+gg1 <- ggplot(dat[-1, ], aes(x=PC, y=Prop_Var, label=round(Prop_Var, 2))) +
+  geom_point(size=1) + geom_line() + ggtitle("proportional variance by PC") +
+  geom_text(nudge_x=0.3, nudge_y=.02) +
   labs(x="Principle component", y="Proportional variance") +
   geom_ribbon(data=dat[-1:-2, ], aes(x=PC, ymin=0, ymax=Prop_Var),
-              fill = "red", alpha = .2) + theme_pander() +
-  scale_fill_brewer(palette = "Dark2")
+              fill="red", alpha=.2) + theme_pander() +
+  scale_fill_brewer(palette="Dark2")
 gg2 <- ggplot(dat,
               aes(x=PC,y=cumsum_Prop_Var,label=round(cumsum_Prop_Var, 2))) +
-  geom_point(size = 1) + geom_line() + 
+  geom_point(size=1) + geom_line() + 
   ggtitle("Cumulative variance by PC") + 
-  geom_text(nudge_x = .2, nudge_y = 0) + 
+  geom_text(nudge_x=.2, nudge_y=0) + 
   labs(x="Principle component", y="Cumulative variance") +
   geom_ribbon(data=dat[-1:-2, ], aes(x=PC, ymin=cumsum_Prop_Var, ymax=1), 
-              fill = "red", alpha = .2) + theme_pander() +
-  scale_fill_brewer(palette = "Dark2")
-#gridExtra::grid.arrange(gg1, gg2, ncol = 2)
+              fill="red", alpha=.2) + theme_pander() +
+  scale_fill_brewer(palette="Dark2")
+#gridExtra::grid.arrange(gg1, gg2, ncol=2)
 
 
 ### t-SNE + PCA
@@ -103,7 +102,7 @@ gg4 <- ggplot(dat, aes(x = tSNE_PC1, y = tSNE_PC2,
   xlab("First Component") + ylab("") + 
   theme_pander() + coord_fixed() + theme(legend.position = 'none') +
   scale_fill_brewer(palette = "Dark2")
- 
+
 
 ### Holes Tourr
 f.col <- rainbow(length(unique(flea$species)))[as.numeric(as.factor(flea$species))]
@@ -127,65 +126,49 @@ gg5 <- ggplot(dat, aes(x = x, y = y, shape = Species, col = Species)) +
 ### method comparison
 Method <- c("PCA", "t-SNE", "Tour, holes")
 Interpretable <- c(T, F, T) 
-MaxVarRetention <- c(F, NA, T)
-GlobalOptimia  <- c(T, F, F)
-CannotOverfit <- c(T, F, T)
-NonLinearData <- c(F, T, F)
+Max_Var_Retention <- c(F, NA, T)
+Global_Optimia  <- c(T, F, F)
+Cannot_Overfit <- c(T, F, T)
+For_Nonlinear_Data <- c(F, T, F)
 
-MethodComparison <- as.data.frame(cbind(Method, Interpretable, MaxVarRetention, GlobalOptimia, CannotOverfit, NonLinearData) )
+MethodComparison <- as.data.frame(cbind(Method, Interpretable, Max_Var_Retention, Global_Optimia, Cannot_Overfit, For_Nonlinear_Data) )
 ```
 
-Column {data-width=300}
+Column {data-width=200}
 -----------------------------------------------------------------------
 
-<!-- ### Overview {data-height=700} -->
-**Overview**
-Visualizing in higher dimension space can be messy and unintuitive (Euclidean space, $\mathbb{R}^p,~~p>3$, where p are numeric variables). Analysis of higher dimensions must be interpretable in terms of the original dimensions and minimizes the loss of the information held in the data. 
+<!-- **Visualizing higher dimensional shapes is quickly messy and unintuitive**   -->
+Let high dim space be a euclidean space, $\mathbb{R}^p,~~p>3$, where $p$ are numeric variables  
+&nbsp;  
 
-To these ends we advise the use of projection pursuit as acheived in the R package `tourr`(2011, H Wickham & D Cook). Furthere, we impliment a method for manual controls following D. Cook, & A. Buja (1997) in an R package `spinifex`, currently available with `devtools::install_github("nspyrison/spinifex")`. We also compare and contrast alternative methodolgy; namely Principal Component Analysis (PCA, 1901 K. Person), t-distributed Stochastic Neighbor Embedding (t-SNE, 2008 L van derMaaten & G Hinton), and holes ompimized tour (an application of projection pursuit, 1974 J Friedman & J Tukey). Grand Tour purposed D Asimov (1985).
+Explore how indivudual variables contribute to a feature:
 
-The R package, `tourr` (2011, H Wickham & D Cook), gives a means to animate 2-d projections of rotated p-dimensional data object. The path of rotation may take the form of a random walk, predefined path, or optimizing an index by ("semi-"stochastic) gradient descent (Projection Pursuit, described above). 
+- **Tab 1: spinifex**  
 
-<!-- Once an interesting projection as been identified the local area should be explored. `spinifex` gives a means to control each variable's contribution to the given projection.  -->
+Finding interesting features in high dim space:
 
-$Work~in~progress,~~TODO:~add~to,~cleanup$
-<!-- TODO: ADD MORE -->
+- Tab 2: tourr
+- Tab 3: Methodology comparison 
+    - (PCA, t-SNE, holes tour)
 
+Code and acknowledgment:
 
-**Thanks**
+- Tab 4: Contact and acknowledgment
+- Tab 5: Expanding tourr
+&nbsp;
 
-Prof. Dianne Cook - Guidance, inspiration, and contributions to projection pursuit
+```{r, results="hold", fig.width=1.5}
+knitr::include_graphics("./images/QR_code.png")
+```
 
-Dr. Ursula Laa - Collaboration, use cases, and development feedback
-
-**References**
-
-H. Wickham, D. Cook, H. Hofmann, and A. Buja (2011). tourr: An r package for exploring multivariate data with projections. Journal of Statistical Software 40(2), http://www.jstatsoft.org/v40.
-
-D. Asimov (1985). The grand tour: a tool for viewing multidimensional data. SIAM Journal on Scientific and Statistical Computing, 6(1), 128–143.
-
-D. Cook, & A. Buja (1997). Manual Controls for High-Dimensional Data Projections. Journal of Computational and Graphical Statistics, 6(4), 464–480. https://doi.org/10.2307/1390747
-
-H. Wickham, D. Cook, and H. Hofmann (2015). Visualising statistical models: Removing the blindfold (withdiscussion). Statistical Analysis and Data Mining 8(4), 203–225.
-
-<!-- G Grinstein, M Trutschl, & U Cvek (2002). High-Dimensional Visualizations. psu.edu. -->
-
-
-**Other reading ** 
-
-<center>
-[Principal Component Analysis](https://en.wikipedia.org/wiki/Principal_component_analysis)
- ------ [t-distributed Stochastic Neighbor Embedding](https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding)  
-[Projection pursuit](https://en.wikipedia.org/wiki/Projection_pursuit)
- ------ [Grand Tour](https://en.wikipedia.org/wiki/Grand_Tour_(data_visualisation))
- ------ [Spinifix Hopping Mouse](https://en.wikipedia.org/wiki/Spinifex_hopping_mouse)
-</center>
+www.blah.com  
+View at 150% zoom from Firefox or Chrome
 
 
 Column {.tabset}
 -----------------------------------------------------------------------
 
-### Spinifex
+### spinifex
 
 #### Data - flea
 
@@ -193,68 +176,70 @@ Column {.tabset}
 
 ####
 
-$TODO:~scale~output~of~spinifex::proj\_data(),~case~handling~for~spinifex::slideshow(),~apply~Phys~data.$
 
-$TODO:~FIX~SPINIFEX~HERE$
 ```{r, eval=TRUE, echo=FALSE, results='asis'}
-# data <- flea[, 1:6]
-# p <- ncol(data)
-# r_basis <- create_random_basis(p = p)
-# pal <- rainbow(length(levels(flea$species)))
-# col <- pal[as.numeric(flea$species)]
-# pch <- flea$species
-# 
-# proj <-
-#   proj_data(
-#     data = data,
-#     basis = r_basis,
-#     manip_var = 1,
-#     manip_type = "rad",
-#     phi_from = 0,
-#     phi_to = 2*pi,
-#     n_slides = 20
-#   )
-# slideshow(proj, col = col)
+flea_std <- 
+  apply(flea[,1:6], 2, function(x) ((x-mean(x, na.rm=TRUE))/sd(x, na.rm=TRUE)))
+
+data <- flea_std
+p <- ncol(data)
+r_basis <- create_random_basis(p = p)
+pch <- flea$species
+col <- flea$species
+
+proj <-
+  proj_data(
+    data = data,
+    basis = r_basis,
+    manip_var = 4,
+    manip_type = "radial",
+    phi_from = 0,
+    phi_to = pi,
+    n_slides = 20
+  )
+slideshow(proj, col = col, pch = pch)
 
 ```
 
 
+### tourr
 
-### Tourr
-
-```{r}
-### animation just knits into the first 2 frames; hacking with a .gif.
-# load("PhysDat_6PC.rda")
-# load("fGT_6d.rda")
+```{r }
+# ### GENERATING .GIF
+# data(flea)
+# f <- flea[, 1:6]
+# pal <- c("#1b9e77", "#d95f02", "#7570b3")
+# f.col <- pal[as.numeric(as.factor(flea$species))]
+# f.pch <- as.numeric(flea$species)+14
 # 
-# animate(PhysDat[, 1:6], planned_tour(fGT_6d), 
-#         display_groupxy(col = PhysDat$disID, group_by=PhysDat$disID, 
-#                         gp_legend = FALSE)
-#         )
+# f.holes <- save_history(f, guided_tour(index = holes), max_bases = 25)
+# #f.holes_end <- matrix(as.numeric(f.holes[, , dim(f.holes)[3]]), ncol=2)
+# 
+# render(f, frames = 240, planned_tour(f.holes), #grand_tour(),
+#        display_xy(col = f.col, pch = f.pch),
+#                        #,group_by = flea$species, gp_legend = T),
+#        width = 600, height = 600, "png", "./images/fleaHolesTour-%03d.png")
+# 
+# browseURL("http://gifmaker.me/")
 ```
 ```{r, results="hold"}
-knitr::include_graphics("./PhysGrandTour.gif")
+knitr::include_graphics("./images/FleaHolesTour.gif")
 ```
-
 
 
 ### Methodology comparison
 
-#### Data - flea
-
-74 obs x 6 var of physical measurements taken across 3 different species of flea-beetles. Methods are unsupervized, but data are colored according to species.
-
 #### Methods
 
-- Principle component analysis (PCA): `p` ordered linear combinations of `p` dimensions
-- t-distributed Stochastic Neighbor Embedding (t-SNE): `p` unordered non-linear combinations of `p` dimensions
-- Tour (Holes optimized): stochastic gradient opmitization of white space in the middle of a 2 dimensional projection
+- Principle component analysis (PCA): $p$ ordered linear combinations of $p$ dimensions. Plot PC1 vs PC2
+- t-distributed Stochastic Neighbor Embedding (t-SNE): $p$ unordered non-linear combinations of $p$ dimensions. Do PCA and Plot PC1 vs PC2
+- Tour (Holes optimized): stochastic gradient opmitization of white space in the middle of projections (from $p$ down to 2 dimensions)
 
 ```{r, eval=TRUE, echo=FALSE, results='hold'}
 kable(MethodComparison)
 ```
 
-```{r results="hold",fig.width=12}
+```{r results="hold",fig.width=9}
 
 grid.arrange(gg3 + theme(legend.position = c(.5, 1)),
             gg4 + theme(legend.position = 'none'),
@@ -276,8 +261,103 @@ ggplot2::ggplot(f.holes_end) + ...
 
 #### Variation lost from dimension reduction
 
-```{r, fig.width=14}
-#TODO: ADD TITLES HERE.
+```{r, fig.width=9}
 gridExtra::grid.arrange(gg1, gg2, ncol=2)
+```
 
+### Contact and acknowledgment
+
+#### Contact
+
+**Nick S Spyrison**  
+nicholas.spyrison@monash.edu  
+https://github.com/nspyrison  
+&nbsp;
+
+#### Installing spinifex
+
+Submitting to CRAN soon
+
+```{r, eval=FALSE, echo=TRUE}
+devtools::install_github("nspyrison/spinifex")
+library(spinifex)
+
+?spinifex::proj_data
+?spinifex::slideshow
+```
+&nbsp;
+
+#### Thanks
+
+- Prof. Dianne Cook - Guidance, inspiration, and contributions to projection pursuit
+- Dr. Ursula Laa - Collaboration, use cases, and development feedback
+&nbsp;
+
+#### References
+
+1. H. Wickham, D. Cook, H. Hofmann, and A. Buja (2011). tourr: An r package for exploring multivariate data with projections. Journal of Statistical Software 40(2), http://www.jstatsoft.org/v40.
+2. D. Asimov (1985). The grand tour: a tool for viewing multidimensional data. SIAM Journal on Scientific and Statistical Computing, 6(1), 128–143.
+3. D. Cook, & A. Buja (1997). Manual Controls for High-Dimensional Data Projections. Journal of Computational and Graphical Statistics, 6(4), 464–480. https://doi.org/10.2307/1390747
+4. H. Wickham, D. Cook, and H. Hofmann (2015). Visualising statistical models: Removing the blindfold (withdiscussion). Statistical Analysis and Data Mining 8(4), 203–225.
+<!-- 5. G Grinstein, M Trutschl, & U Cvek (2002). High-Dimensional Visualizations. psu.edu. -->
+&nbsp;
+
+#### Other reading
+
+- [Namesake: spinifix hopping mouse](https://en.wikipedia.org/wiki/Spinifex_hopping_mouse)
+    - To quote Di: "it spins, it hops and needs a 'mouse' "
+- [Principal component analysis](https://en.wikipedia.org/wiki/Principal_component_analysis)
+- [t-distributed stochastic neighbor embedding](https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding)
+- [Projection pursuit](https://en.wikipedia.org/wiki/Projection_pursuit)
+- [Stochastic gradient optimization](https://en.wikipedia.org/wiki/Stochastic_gradient_descent)
+- [Grand tour](https://en.wikipedia.org/wiki/Grand_Tour_(data_visualisation))
+
+### Expanding tourr
+
+```{r, eval=FALSE, echo=TRUE}
+devtools::install_github("nspyrison/tourr")
+library(tourr)
+
+?tourr::animate_groupxy()
+?tourr::animate_density2d()
+```
+```{r }
+# ### GENERATING .GIF
+# data(flea)
+# f <- flea[, 1:6]
+# pal <- c("#1b9e77", "#d95f02", "#7570b3")
+# f.col <- pal[as.numeric(as.factor(flea$species))]
+# f.pch <- as.numeric(flea$species)+14
+# 
+# f.holes <- save_history(f, guided_tour(index = holes), max_bases = 25)
+# #f.holes_end <- matrix(as.numeric(f.holes[, , dim(f.holes)[3]]), ncol=2)
+# 
+# #group_xy
+# render(f, frames = 240, planned_tour(f.holes), #grand_tour(),
+#        display_groupxy(col = f.col, pch = f.pch,
+#                        group_by = flea$species, gp_legend = T),
+#        width = 600, height = 600,
+#        "png", "./images/fleaHolesTour_groupxy-%03d.png")
+# 
+# #density_2d
+# require(MASS)
+# render(f, frames = 240, planned_tour(f.holes), #grand_tour(),
+#        display_density2d(col = f.col, pch = f.pch,
+#                        group_by = flea$species, gp_legend = T),
+#        width = 600, height = 600,
+#        "png", "./images/fleaHolesTour_density2d-%03d.png")
+# 
+# browseURL("http://gifmaker.me/")
+```
+
+#### animate_groupxy()
+
+```{r, results="hold"}
+knitr::include_graphics("./images/FleaHolesTour_groupxy.gif")
+```
+
+#### animate_density2d()
+
+```{r, results="hold"}
+knitr::include_graphics("./images/FleaHolesTour_density2d.gif")
 ```
