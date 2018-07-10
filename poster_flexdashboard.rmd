@@ -291,7 +291,7 @@ library(spinifex)
 
 #### Other reading
 
-- [Namesake: spinifix hopping mouse](https://en.wikipedia.org/wiki/Spinifex_hopping_mouse)
+- [Namesake: spinifex hopping mouse](https://en.wikipedia.org/wiki/Spinifex_hopping_mouse)
     - To quote Di: "it spins, it hops and needs a 'mouse' "
 - [Principal component analysis](https://en.wikipedia.org/wiki/Principal_component_analysis)
 - [t-distributed stochastic neighbor embedding](https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding)
