@@ -1,5 +1,5 @@
 ---
-title: "spinifex: visulizing local structure of higher dimensions"
+title: "spinifex: visualizing local structure of higher dimensions"
 author: "--- Nick S Spyrison, Monash University"
 output: 
   flexdashboard::flex_dashboard:
