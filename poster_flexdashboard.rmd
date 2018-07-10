@@ -1,5 +1,5 @@
 ---
-title: "spinifex: visualizing local structure of higher dimensions"
+title: "spinifex: Visualizing local structure of higher dimensions"
 author: "--- Nick S Spyrison, Monash University"
 output: 
   flexdashboard::flex_dashboard:
@@ -143,25 +143,17 @@ Let high dim space be a euclidean space, $\mathbb{R}^p,~~p>3$, where $p$ are num
 
 Explore how indivudual variables contribute to a feature:
 
-- **Tab 1: spinifex**  
-
-Finding interesting features in high dim space:
-
-- Tab 2: tourr
-- Tab 3: Methodology comparison 
-    - (PCA, t-SNE, holes tour)
-
-Code and acknowledgment:
-
-- Tab 4: Contact and acknowledgment
-- Tab 5: Expanding tourr
+- **Tab 1: spinifex:** examine the contribution of one variable on the structure using manual rotation  
+- Tab 2: tourr: generally view random or guided sequences of projections of high-dimensional data
+- Tab 3: comparison: PCA, t-SNE, tour
+- Tab 4: contact: how to find the code and get more details
+- Tab 5: more: additional tourr package enhancements
 &nbsp;
 
 ```{r, results="hold", fig.width=1.5}
 knitr::include_graphics("./images/QR_code.png")
 ```
 
-www.blah.com  
 View at 150% zoom from Firefox or Chrome
 
 
@@ -183,6 +175,7 @@ flea_std <-
 
 data <- flea_std
 p <- ncol(data)
+set.seed(50011)
 r_basis <- create_random_basis(p = p)
 pch <- flea$species
 col <- flea$species
@@ -195,7 +188,7 @@ proj <-
     manip_type = "radial",
     phi_from = 0,
     phi_to = pi,
-    n_slides = 20
+    n_slides = 40
   )
 slideshow(proj, col = col, pch = pch)
 
@@ -227,11 +220,9 @@ knitr::include_graphics("./images/FleaHolesTour.gif")
 ```
 
 
-### Methodology comparison
+### comparison
 
-#### Methods
-
-- Principle component analysis (PCA): $p$ ordered linear combinations of $p$ dimensions. Plot PC1 vs PC2
+- Principal component analysis (PCA): $p$ ordered linear combinations of $p$ dimensions. Plot PC1 vs PC2
 - t-distributed Stochastic Neighbor Embedding (t-SNE): $p$ unordered non-linear combinations of $p$ dimensions. Do PCA and Plot PC1 vs PC2
 - Tour (Holes optimized): stochastic gradient opmitization of white space in the middle of projections (from $p$ down to 2 dimensions)
 
@@ -265,18 +256,14 @@ ggplot2::ggplot(f.holes_end) + ...
 gridExtra::grid.arrange(gg1, gg2, ncol=2)
 ```
 
-### Contact and acknowledgment
-
-#### Contact
+### contact
 
 **Nick S Spyrison**  
 nicholas.spyrison@monash.edu  
 https://github.com/nspyrison  
 &nbsp;
 
-#### Installing spinifex
-
-Submitting to CRAN soon
+#### Install
 
 ```{r, eval=FALSE, echo=TRUE}
 devtools::install_github("nspyrison/spinifex")
@@ -312,7 +299,7 @@ library(spinifex)
 - [Stochastic gradient optimization](https://en.wikipedia.org/wiki/Stochastic_gradient_descent)
 - [Grand tour](https://en.wikipedia.org/wiki/Grand_Tour_(data_visualisation))
 
-### Expanding tourr
+### more
 
 ```{r, eval=FALSE, echo=TRUE}
 devtools::install_github("nspyrison/tourr")
