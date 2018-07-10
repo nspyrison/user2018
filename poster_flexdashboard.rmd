@@ -1,6 +1,6 @@
 ---
 title: "spinifex: visulizing local structure of higher dimensions"
-author: "--- Nick S Spyrison, Monash University"
+author: "--- Nicholas S Spyrison, Monash University"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
@@ -49,11 +49,11 @@ dat %<>% as.data.frame() %>%  cbind("Species" = flea[,7])
 
 gg3 <- ggplot(dat, aes(x = PC1, y = PC2, shape = Species, col = Species)) +
   geom_point(size = 2) + ggtitle("PCA") + coord_fixed() +
-  theme(axis.text.x=element_blank(), axis.text.y=element_blank(),
-        legend.background=element_rect(colour ="darkgray") ) +
-  xlab("First Component") + ylab("Second Component") + 
-  theme_pander() + theme(legend.position = c(0.9, 0.6)) +
-  scale_fill_brewer(palette = "Dark2") 
+  theme(axis.text.x=element_blank(), axis.text.y=element_blank()) +
+  xlab("First Component") + ylab("Second Component") +
+  theme_void() + theme(legend.position = c(0, 0),
+                       legend.background=element_rect(colour ="darkgray") ) +
+  scale_color_brewer(palette = "Dark2") 
 
 ### PCA pdf, cdf
 dat <- as.data.frame(
@@ -70,8 +70,7 @@ gg1 <- ggplot(dat[-1, ], aes(x=PC, y=Prop_Var, label=round(Prop_Var, 2))) +
   geom_text(nudge_x=0.3, nudge_y=.02) +
   labs(x="Principle component", y="Proportional variance") +
   geom_ribbon(data=dat[-1:-2, ], aes(x=PC, ymin=0, ymax=Prop_Var),
-              fill="red", alpha=.2) + theme_pander() +
-  scale_fill_brewer(palette="Dark2")
+              fill="red", alpha=.2) + theme_void()
 gg2 <- ggplot(dat,
               aes(x=PC,y=cumsum_Prop_Var,label=round(cumsum_Prop_Var, 2))) +
   geom_point(size=1) + geom_line() + 
@@ -79,8 +78,7 @@ gg2 <- ggplot(dat,
   geom_text(nudge_x=.2, nudge_y=0) + 
   labs(x="Principle component", y="Cumulative variance") +
   geom_ribbon(data=dat[-1:-2, ], aes(x=PC, ymin=cumsum_Prop_Var, ymax=1), 
-              fill="red", alpha=.2) + theme_pander() +
-  scale_fill_brewer(palette="Dark2")
+              fill="red", alpha=.2) + theme_void()
 #gridExtra::grid.arrange(gg1, gg2, ncol=2)
 
 
@@ -100,8 +98,8 @@ gg4 <- ggplot(dat, aes(x = tSNE_PC1, y = tSNE_PC2,
   theme(axis.text.x=element_blank(), axis.text.y=element_blank() ) + 
   geom_point(size = 2) + ggtitle("t-SNE") + 
   xlab("First Component") + ylab("") + 
-  theme_pander() + coord_fixed() + theme(legend.position = 'none') +
-  scale_fill_brewer(palette = "Dark2")
+  theme_void() + coord_fixed() + theme(legend.position = 'none') +
+  scale_color_brewer(palette = "Dark2")
 
 
 ### Holes Tourr
@@ -120,8 +118,8 @@ gg5 <- ggplot(dat, aes(x = x, y = y, shape = Species, col = Species)) +
   geom_point(size = 2) + ggtitle("Tour, holes") +
   theme(axis.text.x=element_blank(), axis.text.y=element_blank() ) +
   xlab("First Component") + ylab("") +
-  theme_pander() + coord_fixed() + theme(legend.position = 'none') +
-  scale_fill_brewer(palette = "Dark2")
+  theme_void() + coord_fixed() + theme(legend.position = 'none') +
+  scale_color_brewer(palette = "Dark2")
 
 ### method comparison
 Method <- c("PCA", "t-SNE", "Tour, holes")
@@ -145,13 +143,13 @@ Explore how indivudual variables contribute to a feature:
 
 - **Tab 1: spinifex**  
 
-Finding interesting features in high dim space:
+Finding a basis in high dim space:
 
 - Tab 2: tourr
 - Tab 3: Methodology comparison 
     - (PCA, t-SNE, holes tour)
 
-Code and acknowledgment:
+Acknowledgment and other work:
 
 - Tab 4: Contact and acknowledgment
 - Tab 5: Expanding tourr
@@ -176,7 +174,6 @@ Column {.tabset}
 
 ####
 
-
 ```{r, eval=TRUE, echo=FALSE, results='asis'}
 flea_std <- 
   apply(flea[,1:6], 2, function(x) ((x-mean(x, na.rm=TRUE))/sd(x, na.rm=TRUE)))
@@ -197,8 +194,10 @@ proj <-
     phi_to = pi,
     n_slides = 20
   )
-slideshow(proj, col = col, pch = pch)
-
+gg1
+print("ISSUE HERE:")
+#slideshow(proj, col = col, pch = pch)
+#layout(pgg5, colors = "Dark2", color = ~proj$col) # should be done in ggplot
 ```
 
 
@@ -241,7 +240,7 @@ kable(MethodComparison)
 
 ```{r results="hold",fig.width=9}
 
-grid.arrange(gg3 + theme(legend.position = c(.5, 1)),
+grid.arrange(gg3 + theme(legend.position = c(.2, .1)),
             gg4 + theme(legend.position = 'none'),
             gg5 + theme(legend.position = 'none'),
             ncol=3, nrow=1)
@@ -269,14 +268,14 @@ gridExtra::grid.arrange(gg1, gg2, ncol=2)
 
 #### Contact
 
-**Nick S Spyrison**  
+**Nicholas S Spyrison**  
 nicholas.spyrison@monash.edu  
 https://github.com/nspyrison  
 &nbsp;
 
 #### Installing spinifex
 
-Submitting to CRAN soon
+Submitting to CRAN soon *knocking on wood*
 
 ```{r, eval=FALSE, echo=TRUE}
 devtools::install_github("nspyrison/spinifex")
