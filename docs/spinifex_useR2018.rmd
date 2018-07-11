@@ -136,10 +136,9 @@ Column {data-width=200}
 -----------------------------------------------------------------------
 
 <!-- **Visualizing higher dimensional shapes is quickly messy and unintuitive**   -->
-Let high dim space be a euclidean space, $\mathbb{R}^p,~~p>3$, where $p$ are numeric variables  
+Let high dim space be a euclidean space, $\mathbb{R}^p,~~p>3$  
+  where $p$ are numeric variables  
 &nbsp;  
-
-Explore how indivudual variables contribute to a feature:
 
 - **Tab 1: spinifex:** examine the contribution of one variable on the structure using manual rotation  
 - Tab 2: tourr: generally view random or guided sequences of projections of high-dimensional data
@@ -148,10 +147,11 @@ Explore how indivudual variables contribute to a feature:
 - Tab 5: more: additional tourr package enhancements
 &nbsp;
 
-```{r, results="hold", fig.width=1.5}
-knitr::include_graphics("../images/QR_code.png")
+```{r, results="hold", fig.width=2}
+knitr::include_graphics("../images/QR_spinifex_useR2018.png")
 ```
 
+[nspyrison.github.io/user2018](https://nspyrison.github.io/user2018/spinifex_useR2018.html)  
 View at 150% zoom from Firefox or Chrome
 
 
@@ -166,7 +166,7 @@ Column {.tabset}
 
 ####
 
-```{r, eval=TRUE, echo=FALSE, results='asis'}
+```{r, eval=TRUE, echo=FALSE, results='hold'}
 flea_std <- 
   apply(flea[,1:6], 2, function(x) ((x-mean(x, na.rm=TRUE))/sd(x, na.rm=TRUE)))
 
@@ -219,15 +219,41 @@ knitr::include_graphics("../images/FleaHolesTour.gif")
 
 ### comparison
 
+.
+.  
+.  
+.  
+.  
+.  
+.  
+.  
+.  
+.  
+.  
+.  
+.  
+.  
+.  
+.  
+.  
+.  
+.  
+.  
+.  
+.  
+.  
+.  
+
+
 - Principal component analysis (PCA): $p$ ordered linear combinations of $p$ dimensions. Plot PC1 vs PC2
 - t-distributed Stochastic Neighbor Embedding (t-SNE): $p$ unordered non-linear combinations of $p$ dimensions. Do PCA and Plot PC1 vs PC2
 - Tour (Holes optimized): stochastic gradient opmitization of white space in the middle of projections (from $p$ down to 2 dimensions)
 
-```{r, eval=TRUE, echo=FALSE, results='hold'}
+```{r, eval=TRUE, echo=FALSE, results=hold'}
 kable(MethodComparison)
 ```
 
-```{r results="hold",fig.width=9}
+```{r results="asis",fig.width=9}
 
 grid.arrange(gg3 + theme(legend.position = c(.2, .1)),
             gg4 + theme(legend.position = 'none'),
@@ -257,7 +283,7 @@ gridExtra::grid.arrange(gg1, gg2, ncol=2)
 
 **Nick S Spyrison**  
 nicholas.spyrison@monash.edu  
-[github.com/nspyrison](https://github.com/nspyrison)
+[github.com/nspyrison](https://github.com/nspyrison)  
 [scholar.google.com.au/](https://scholar.google.com.au/citations?user=zzM9WVEAAAAJ&hl=en)
 &nbsp;
 

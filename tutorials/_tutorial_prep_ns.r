@@ -32,7 +32,9 @@ install.packages(CS_pkgs)
 demo("crosstalk-highlight-epl-2", package = "plotly")
 
 
-# Download devtools if not already installed
+
+### Trouble with dev ver of plotly or demo()?
+# Download devtools if not already installed:
 if (!is.element("devtools", installed.packages()[,1])) {
   install.packages("devtools", dep = TRUE)
   require(p, character.only = TRUE)
@@ -41,12 +43,12 @@ if (!is.element("devtools", installed.packages()[,1])) {
 # Download dev version of plotly (to be submitted to CRAN later July 2018.)
 devtools::install_github("ropensci/plotly", dep = TRUE)
 
-# Try to run the demo code:
+# Try to run the demo code. If you have dependancy issues try the next line.
 demo("crosstalk-highlight-epl-2", package = "plotly")
 
-# If you are 
-CS_pkgs <- c("engsoccerdata", "dplyr", "tidyr", "plotly")
-install.packages(CS_pkgs)
+# If you still have dependancy issues, try:
+plotly_demo_pkgs <- c("engsoccerdata", "dplyr", "tidyr", "plotly")
+install.packages(plotly_demo_pkgs)
 
 
 
