@@ -49,10 +49,10 @@ dat %<>% as.data.frame() %>%  cbind("Species" = flea[,7])
 
 gg3 <- ggplot(dat, aes(x = PC1, y = PC2, shape = Species, col = Species)) +
   geom_point(size = 2) + ggtitle("PCA") + coord_fixed() +
-  theme(axis.text.x=element_blank(), axis.text.y=element_blank()) +
   xlab("First Component") + ylab("Second Component") +
-  theme_void() + theme(legend.position = c(0, 0),
+  theme_minimal() + theme(legend.position = c(0, 0),
                        legend.background=element_rect(colour ="darkgray") ) +
+  theme(axis.text.x=element_blank(), axis.text.y=element_blank()) +
   scale_color_brewer(palette = "Dark2") 
 
 ### PCA pdf, cdf
@@ -95,10 +95,10 @@ apply(dat, 2, function(x) (x / max(abs(x))))
 dat %<>% as.data.frame() %>% cbind("Species" = flea[,7])
 gg4 <- ggplot(dat, aes(x = tSNE_PC1, y = tSNE_PC2, 
                         shape = Species, col = Species) ) +
-  theme(axis.text.x=element_blank(), axis.text.y=element_blank() ) + 
   geom_point(size = 2) + ggtitle("t-SNE") + 
   xlab("First Component") + ylab("") + 
-  theme_void() + coord_fixed() + theme(legend.position = 'none') +
+  theme_minimal() + coord_fixed() + theme(legend.position = 'none') +
+  theme(axis.text.x=element_blank(), axis.text.y=element_blank() ) + 
   scale_color_brewer(palette = "Dark2")
 
 
@@ -116,9 +116,9 @@ colnames(dat) <- c("x", "y")
 dat %<>% cbind("Species" = flea[,7])
 gg5 <- ggplot(dat, aes(x = x, y = y, shape = Species, col = Species)) +
   geom_point(size = 2) + ggtitle("Tour, holes") +
-  theme(axis.text.x=element_blank(), axis.text.y=element_blank() ) +
   xlab("First Component") + ylab("") +
-  theme_void() + coord_fixed() + theme(legend.position = 'none') +
+  theme_minimal() + coord_fixed() + theme(legend.position = 'none') +
+  theme(axis.text.x=element_blank(), axis.text.y=element_blank() ) +
   scale_color_brewer(palette = "Dark2")
 
 ### method comparison
@@ -145,14 +145,16 @@ Let high dim space be a euclidean space, $\mathbb{R}^p,~~p>3$
 - Tab 3: comparison: PCA, t-SNE, tour
 - Tab 4: contact: how to find the code and get more details
 - Tab 5: more: additional tourr package enhancements
-&nbsp;
+&nbsp;  
 
 ```{r, results="hold", fig.width=2}
 knitr::include_graphics("../images/QR_spinifex_useR2018.png")
 ```
+&nbsp;  
 
 [nspyrison.github.io/user2018](https://nspyrison.github.io/user2018/spinifex_useR2018.html)  
-View at 150% zoom from Firefox or Chrome
+Suggested viewing:  
+125% zoom from Firefox or Chrome
 
 
 Column {.tabset}
@@ -219,7 +221,6 @@ knitr::include_graphics("../images/FleaHolesTour.gif")
 
 ### comparison
 
-.
 .  
 .  
 .  
@@ -243,19 +244,26 @@ knitr::include_graphics("../images/FleaHolesTour.gif")
 .  
 .  
 .  
+.  
+
 
 
 - Principal component analysis (PCA): $p$ ordered linear combinations of $p$ dimensions. Plot PC1 vs PC2
 - t-distributed Stochastic Neighbor Embedding (t-SNE): $p$ unordered non-linear combinations of $p$ dimensions. Do PCA and Plot PC1 vs PC2
 - Tour (Holes optimized): stochastic gradient opmitization of white space in the middle of projections (from $p$ down to 2 dimensions)
 
-```{r, eval=TRUE, echo=FALSE, results=hold'}
+```{r, eval=TRUE, echo=FALSE, results='hold'}
 kable(MethodComparison)
 ```
 
 ```{r results="asis",fig.width=9}
+### Need to standardize before going to 1,1.
+# grid.arrange(gg3 + theme(legend.position= c(.2,.2)) + xlim(-1, 1) + ylim(-1, 1),
+#             gg4 + theme(legend.position = 'none') + xlim(-1, 1) + ylim(-1, 1),
+#             gg5 + theme(legend.position = 'none') + xlim(-1, 1) + ylim(-1, 1),
+#             ncol=3, nrow=1)
 
-grid.arrange(gg3 + theme(legend.position = c(.2, .1)),
+grid.arrange(gg3 + theme(legend.position = c(.2, .2)),
             gg4 + theme(legend.position = 'none'),
             gg5 + theme(legend.position = 'none'),
             ncol=3, nrow=1)
@@ -284,7 +292,7 @@ gridExtra::grid.arrange(gg1, gg2, ncol=2)
 **Nick S Spyrison**  
 nicholas.spyrison@monash.edu  
 [github.com/nspyrison](https://github.com/nspyrison)  
-[scholar.google.com.au/](https://scholar.google.com.au/citations?user=zzM9WVEAAAAJ&hl=en)
+[scholar.google.com.au](https://scholar.google.com.au/citations?user=zzM9WVEAAAAJ&hl=en)
 &nbsp;
 
 
