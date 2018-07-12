@@ -1,14 +1,12 @@
-#####UseR2018 Datathon
-#https://user2018.r-project.org/datathon/ #datathon
-#https://docs.google.com/forms/d/e/1FAIpQLSe9r5xwi6I0-CpJIDcGBatKmM3UX2IjC7_zlj1_4p42txMGZw/viewform #submission form
-#https://www.ala.org.au/ ##DATA AL
-#https://github.com/AtlasOfLivingAustralia/ALA4R # ala4r
-#https://en.wikipedia.org/wiki/Species_diversity
+# ######UseR2018 Datathon
+# browseURL("https://user2018.r-project.org/datathon/") # datathon
+# browseURL("https://docs.google.com/forms/d/e/1FAIpQLSe9r5xwi6I0-CpJIDcGBatKmM3UX2IjC7_zlj1_4p42txMGZw/viewform") #submission form
+# browseURL("https://www.ala.org.au/") # ala data
+# browseURL("https://github.com/AtlasOfLivingAustralia/ALA4R") # ala4r package
+# browseURL("https://en.wikipedia.org/wiki/Species_diversity") 
+#   # wiki spieces diversity
 
-###going to common name: 
-#vignette("ALA4R")
-#library("ALA4R")
-
+# mangoDBlite
 
 #library(tidyverse)
 library(tibble)
@@ -20,9 +18,9 @@ library(dplyr)
 library(lubridate)
 library(ggmap)
 
-#reptile_brief <- read.csv(file=".//datathon//data//Reptiles-brief.csv", header=TRUE, sep=",") #takes about 10 sec or so?
-#birds_brief <- read.csv(file.choose(), nrows=200000)
 
+birds_brief <- read.csv(file.choose(), nrows=200000)
+  # read.csv(file="../datathon/data/Birds-brief.csv", nrows=200000)
 dat <- birds_brief
 
 ###dimdate
@@ -37,24 +35,28 @@ dat %<>% filter(decimalLongitude<1000)
 dat %<>% filter(decimalLongitude>100)
 dat %<>% filter(decimalLatitude<0)
 dat %<>% filter(decimalLatitude>-45)
-quantile(dat$decimalLatitude)
-##reptile
-#dat %<>% filter(year>1950) 
-#dat %<>% filter(coordinateUncertaintyInMeters<2001)
 #birbs
 dat %<>% filter(year>1975) 
 dat %<>% filter(is.na(coordinateUncertaintyInMeters)
                 |coordinateUncertaintyInMeters<100)
 
-str(dat)
+#str(dat)
 drop <- c("Data.Resource.ID","basisOfRecord","eventDate",
           "coordinateUncertaintyInMeters")
-dat <- dat[, !(names(dat) %in% drop)]
-str(dat)
+dat <- as.tibble(dat[, !(names(dat) %in% drop)] )
+
+birds_brief_200k_clean <- dat
+save(birds_brief_200k_clean, 
+     file = "./datathon/data/birds_brief_200k_clean.rda") 
+
 
 ### EDA
+load("./datathon/data/bird_200k_clean.rda")
+dat <- birds_brief_200k_clean
+
 GGally::ggpairs(data = dat[4:ncol(dat)])
 visdat::vis_dat(dat, warn_large_data = F) #bird NAs in uncertainty
+# quantile(dat$decimalLatitude)
 
 ggplot(dat, aes(x=year)) + geom_histogram(stat="count")
 ggplot(dat, aes(x=month)) + geom_histogram(stat="count")
@@ -80,16 +82,6 @@ ggplot(family, aes(x = reorder(Var1, -Freq), y = Freq)) +
   geom_bar(stat = "identity") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-
-save(dat, file ="bird_200k_clean.rda") 
-#"./datathon/data/bird_20k_clean.rda"
-
-#set.seed(123)
-#samp <- dat[sample(nrow(dat), 5000), ] %>% as.data.frame()
-#
-#save(samp, file ="./datathon/data/bird_samp.rda")
-##save(samp, file ="./datathon/data/samp.rda")
-##load(file ="./datathon/data/samp.rda")
 
 ### EDA
 visdat::vis_dat(dat, warn_large_data = F) #bird NAs in uncertainty
@@ -147,23 +139,4 @@ p <- gapminder %>%
     )
   )
 p
-# Create a shareable link to your chart
-# Set up API credentials: https://plot.ly/r/getting-started
-chart_link = api_create(p, filename="animations-mulitple-trace")
-chart_link
 
-library(ggplot2)
-library(maps)
-library(ggthemes)
-
-world <- ggplot() +
-  borders("world", colour = "gray85", fill = "gray80") +
-  theme_map() 
-
-map <- world +
-  geom_point(aes(x = lon, y = lat, size = followers),
-             data = rladies, 
-             colour = 'purple', alpha = .5) +
-  scale_size_continuous(range = c(1, 8), 
-                        breaks = c(250, 500, 750, 1000)) +
-  labs(size = 'Followers')
