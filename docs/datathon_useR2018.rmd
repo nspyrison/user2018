@@ -39,41 +39,38 @@ knitr::opts_chunk$set(
 #library(tidyverse)
 library(tibble)
 library(ggplot2)
-library(visdat)
+#library(visdat)
 library(GGally)
 library(magrittr)
 library(dplyr)
 library(lubridate)
-library(ggmap)
+library(plotly)
+#library(ggmap)
 ```
 
 
-Column {data-width=200}
+Column {data-width=350}
 -----------------------------------------------------------------------
 
 #### Metadata
 
-Raw
+**Raw**  
 Bird records - brief version  
-File size: 6.0 GB unzipped .csv format -- (1.3 GB .zip compressed) 
-Dimensionality: NNN,000 obs x 9 vars
+File size: 6.0 GB unzipped .csv format -- (1.3 GB .zip compressed)  
+Dimensionality: >3,000,000 obs x 9 vars  
 Available: [download.ala.org](https://downloads.ala.org.au/?offset=10&max=10)  
 
-Cleaned
+**Cleaned**  
+File size: 6.0 GB unzipped .rda format -- (1.3 GB .zip compressed)  
+Dimensionality: 2,740,000 obs x 9 vars (drop 4, add 4 date var)
 
-File size: 6.0 GB unzipped .rda format -- (1.3 GB .zip compressed) 
-Dimensionality: 111,000 obs x 10 vars (drop 4, add 5 convience var)
-For reproducability see our [GitHub repo](https://github.com/nspyrison/user2018/tree/master/docs)
 &nbsp;  
 
-$CHANGE HERE:$
+**Team nassTea**  
+**N**ick, **A**bby, **S**ium, **S**ayani (Tea, with)  
 
-- Tab 1: spinifex: examine the contribution of one variable on the structure using manual rotation  
-- Tab 2: tourr: generally view random or guided sequences of projections of high-dimensional data
-- Tab 3: comparison: PCA, t-SNE, tour
-- Tab 4: contact: how to find the code and get more details
-- Tab 5: more: additional tourr package enhancements
 &nbsp;  
+
 
 ```{r, results="hold", fig.width=1.5}
 knitr::include_graphics("../images/QR_datathon_user2018.png")
@@ -86,142 +83,76 @@ Suggested viewing:
 Column {.tabset}
 -----------------------------------------------------------------------
 
-### spinifex
+### Lesson 1, Start work earlier, work smarter
 
-#### Data - flea
+#### niave approach
 
-74 obs x 6 var of physical measurements taken across 3 different species of flea-beetles. Methods are unsupervized, but data are colored according to species.
+```{r, eval=FALSE, echo=TRUE}
+for (i in 1:n_mil) {
+  load(... , nrow = 1e6, skip = (i - 1) * 1e6)
+  clean()
+  filter()
+  save(...)
+  rm(list = ls()) # Sorry Jenny Bryan, I'll keep an extinguisher handy.
+}
 
-####
+load(1:n_mil)
+rbind(1:n_mil)
+save(...)
+rm(list = ls()) # Sorry Jenny Bryan, I'll keep an extinguisher handy.
 
-```{r, eval=TRUE, echo=FALSE, results='asis'}
-paste0("INSERT SOME PLOTLY OBJECT HERE.")
+load(1:n_mil)
+sample_n(dat, n = 5000)
 ```
 
 
-### tourr
+#### Next iteration
+
+- Put up a mangoDB
+- Bring our dplyr::s
+- ggplot(space, frame=time) %>% plotly::ggplotly()
 
 
-```{r, results="hold"}
-paste0("INSERT SOME IMG HERE.")
-```
-
-
-### comparison
-
-- Principal component analysis (PCA): $p$ ordered linear combinations of $p$ dimensions. Plot PC1 vs PC2
-- t-distributed Stochastic Neighbor Embedding (t-SNE): $p$ unordered non-linear combinations of $p$ dimensions. Do PCA and Plot PC1 vs PC2
-- Tour (Holes optimized): stochastic gradient opmitization of white space in the middle of projections (from $p$ down to 2 dimensions)
-
-```{r, eval=TRUE, echo=FALSE, results='hold'}
-paste0("INSERT SOME KABLE HERE.")
-```
+### EDA 1
 
 ```{r results="hold",fig.width=9}
-paste0("INSERT SOME GG or GRID OBJ HERE.")
+load(file = "../datathon/data/samp_5k_of3m.rda")
+
+dat <- samp
+GGally::ggpairs(data = dat[3:ncol(dat)])
 ```
 
-```{r, eval=FALSE, echo=TRUE}
-paste0("INSERT SOME PSEUDO CODE HERE.")
+
+### EDA 2
+
+```{r results="hold",fig.width=9}
+map_samp <- samp
+### MAPPING 101
+xymap <- ggplot(map_samp, aes(y=decimalLatitude, x=decimalLongitude),
+                alpha=.1) + coord_fixed() + geom_jitter(width=.5, height=.3)+ theme_minimal()
+xymap
 ```
 
-#### Variation lost from dimension reduction
 
-```{r, fig.width=9}
-paste0("INSERT SOME GG or GRID OBJ HERE.")
+### EDA 3
+
+```{r results="hold",fig.width=9}
+library(ggmap)
+map <- get_map(location = 'Australia', zoom = 4)
+ggmap <- ggmap(map) + 
+  geom_jitter(data = dat, 
+              aes(y=decimalLatitude, x=decimalLongitude, frame=year), 
+              alpha=.1, width=.5, height=.3) + coord_fixed() 
+plotly::ggplotly(ggmap)
 ```
 
-### contact
+### EDA 4
 
-**Team nassTea**  
-**N**ick, **A**bby, **S**ium, **S**ayani 
-Email contact: [nicholas.spyrison@monash.edu](mailto:nicholas.spyrison@monash.edu)
-[GitHub repo](https://github.com/nspyrison/user2018/tree/master/docs)
-&nbsp;
-
-
-#### Install
-
-```{r, eval=FALSE, echo=TRUE}
-devtools::install_github("nspyrison/spinifex")
-library(spinifex)
-
-?spinifex::proj_data
-?spinifex::slideshow
-```
-&nbsp;
-
-#### Thanks
-
-- Prof. Dianne Cook - Guidance, namesake, and contributions to projection pursuit
-- Dr. Ursula Laa - Collaboration, use cases, and dev feedback
-&nbsp;
-
-#### References
-
-1. H. Wickham, D. Cook, H. Hofmann, and A. Buja (2011). tourr: An r package for exploring multivariate data with projections. Journal of Statistical Software 40(2), http://www.jstatsoft.org/v40.
-2. D. Asimov (1985). The grand tour: a tool for viewing multidimensional data. SIAM Journal on Scientific and Statistical Computing, 6(1), 128–143.
-3. D. Cook, & A. Buja (1997). Manual Controls for High-Dimensional Data Projections. Journal of Computational and Graphical Statistics, 6(4), 464–480. https://doi.org/10.2307/1390747
-4. H. Wickham, D. Cook, and H. Hofmann (2015). Visualising statistical models: Removing the blindfold (withdiscussion). Statistical Analysis and Data Mining 8(4), 203–225.
-<!-- 5. G Grinstein, M Trutschl, & U Cvek (2002). High-Dimensional Visualizations. psu.edu. -->
-&nbsp;
-
-#### Other reading
-
-- [Namesake: spinifex hopping mouse](https://en.wikipedia.org/wiki/Spinifex_hopping_mouse)
-    - To quote Di: "it spins, it hops and needs a 'mouse' "
-- [Principal component analysis](https://en.wikipedia.org/wiki/Principal_component_analysis)
-- [t-distributed stochastic neighbor embedding](https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding)
-- [Projection pursuit](https://en.wikipedia.org/wiki/Projection_pursuit)
-- [Stochastic gradient optimization](https://en.wikipedia.org/wiki/Stochastic_gradient_descent)
-- [Grand tour](https://en.wikipedia.org/wiki/Grand_Tour_(data_visualisation))
-
-### more
-
-```{r, eval=FALSE, echo=TRUE}
-devtools::install_github("nspyrison/tourr")
-library(tourr)
-
-?tourr::animate_groupxy()
-?tourr::animate_density2d()
-```
-```{r }
-# ### GENERATING .GIF
-# data(flea)
-# f <- flea[, 1:6]
-# pal <- c("#1b9e77", "#d95f02", "#7570b3")
-# f.col <- pal[as.numeric(as.factor(flea$species))]
-# f.pch <- as.numeric(flea$species)+14
-# 
-# f.holes <- save_history(f, guided_tour(index = holes), max_bases = 25)
-# #f.holes_end <- matrix(as.numeric(f.holes[, , dim(f.holes)[3]]), ncol=2)
-# 
-# #group_xy
-# render(f, frames = 240, planned_tour(f.holes), #grand_tour(),
-#        display_groupxy(col = f.col, pch = f.pch,
-#                        group_by = flea$species, gp_legend = T),
-#        width = 600, height = 600,
-#        "png", "./images/fleaHolesTour_groupxy-%03d.png")
-# 
-# #density_2d
-# require(MASS)
-# render(f, frames = 240, planned_tour(f.holes), #grand_tour(),
-#        display_density2d(col = f.col, pch = f.pch,
-#                        group_by = flea$species, gp_legend = T),
-#        width = 600, height = 600,
-#        "png", "./images/fleaHolesTour_density2d-%03d.png")
-# 
-# browseURL("http://gifmaker.me/")
+```{r results="hold",fig.width=9}
+map_samp <- mutate(map_samp, decade=substring(year,1,3))
+xymap2 <- 
+  ggplot(map_samp, aes(y=decimalLatitude, x=decimalLongitude, frame=decade),
+         alpha=.1) + coord_fixed() + geom_jitter(width=.5, height=.3) + theme_minimal()
+plotly::ggplotly(xymap2)
 ```
 
-#### animate_groupxy()
-
-```{r, results="hold"}
-knitr::include_graphics("./images/FleaHolesTour_groupxy.gif")
-```
-
-#### animate_density2d()
-
-```{r, results="hold"}
-knitr::include_graphics("./images/FleaHolesTour_density2d.gif")
-```
