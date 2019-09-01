@@ -1,6 +1,6 @@
 ---
 title: "Avian spatial temporal diversity"
-author: "--- Team nassTea, Monash University"
+author: "--- Team eechidna, Monash University"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
@@ -34,7 +34,7 @@ knitr::opts_chunk$set(
 # browseURL("https://en.wikipedia.org/wiki/Species_diversity") 
 #   # wiki spieces diversity
 
-# mangoDBlite
+# mongoDBlite
 
 #library(tidyverse)
 library(tibble)
@@ -66,14 +66,15 @@ Dimensionality: 2,740,000 obs x 9 vars (drop 4, add 4 date var)
 
 &nbsp;  
 
-**Team nassTea**  
-**N**ick, **A**bby, **S**ium, **S**ayani (Tea, with)  
+**Team eechidna**  
+Nicholas Spyrison  
+Sayani Gupta
 
 &nbsp;  
 
 
 ```{r, results="hold", fig.width=1.5}
-knitr::include_graphics("../images/QR_datathon_user2018.png")
+knitr::include_graphics("./images_useR2018/QR_datathon_user2018.png")
 ```
 
 Suggested viewing:  
@@ -85,7 +86,7 @@ Column {.tabset}
 
 ### Lesson 1, Start work earlier, work smarter
 
-#### niave approach
+#### ETL approach
 
 ```{r, eval=FALSE, echo=TRUE}
 for (i in 1:n_mil) {
@@ -93,13 +94,13 @@ for (i in 1:n_mil) {
   clean()
   filter()
   save(...)
-  rm(list = ls()) # Sorry Jenny Bryan, I'll keep an extinguisher handy.
+  rm(list = ls()) # Sorry Jenny Bryan, I'll keep a fire extinguisher handy.
 }
 
 load(1:n_mil)
 rbind(1:n_mil)
 save(...)
-rm(list = ls()) # Sorry Jenny Bryan, I'll keep an extinguisher handy.
+rm(list = ls())
 
 load(1:n_mil)
 sample_n(dat, n = 5000)
@@ -108,22 +109,23 @@ sample_n(dat, n = 5000)
 
 #### Next iteration
 
-- Put up a mangoDB
+- Put up a mongoDB
 - Bring our dplyr::s
 - ggplot(space, frame=time) %>% plotly::ggplotly()
 
 
-### EDA 1
+### EDA
 
 ```{r results="hold",fig.width=9}
-load(file = "../datathon/data/samp_5k_of3m.rda")
+load(file = "./data_useR2018_datathon/samp_5k_of3m.rda")
 
 dat <- samp
 GGally::ggpairs(data = dat[3:ncol(dat)])
+skimr::skim(samp)
 ```
 
 
-### EDA 2
+### Geospacial
 
 ```{r results="hold",fig.width=9}
 map_samp <- samp
@@ -134,19 +136,19 @@ xymap
 ```
 
 
-### EDA 3
+<!-- ### Geospacial -->
 
-```{r results="hold",fig.width=9}
-library(ggmap)
-map <- get_map(location = 'Australia', zoom = 4)
-ggmap <- ggmap(map) + 
-  geom_jitter(data = dat, 
-              aes(y=decimalLatitude, x=decimalLongitude, frame=year), 
-              alpha=.1, width=.5, height=.3) + coord_fixed() 
-plotly::ggplotly(ggmap)
-```
+<!-- ```{r results="hold",fig.width=9} -->
+<!-- library(ggmap) -->
+<!-- map <- get_map(location = 'Australia', zoom = 4) ### ERR needs API keys now. -->
+<!-- ggmap <- ggmap(map) +  -->
+<!--   geom_jitter(data = dat,  -->
+<!--               aes(y=decimalLatitude, x=decimalLongitude, frame=year),  -->
+<!--               alpha=.1, width=.5, height=.3) + coord_fixed()  -->
+<!-- plotly::ggplotly(ggmap) -->
+<!-- ``` -->
 
-### EDA 4
+### Geospacial-temporal
 
 ```{r results="hold",fig.width=9}
 map_samp <- mutate(map_samp, decade=substring(year,1,3))
