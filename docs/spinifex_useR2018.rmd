@@ -40,12 +40,12 @@ library(flexdashboard)
 ```
 
 ```{r code for method compare}
-### PCA
-f <- flea[, 1:6]
-f.pca <- stats::prcomp(f, center = TRUE, scale. = TRUE)
-dat <- as.data.frame(f.pca$x) %>% scale()
-apply(dat, 2, function(x) (x / max(abs(x))))
-dat %<>% as.data.frame() %>%  cbind("Species" = flea[,7])
+flea_std <- tourr::rescale(flea[, 1:6])
+### PCA -----
+f.pca <- stats::prcomp(flea_std, center = TRUE, scale. = TRUE)
+dat <- as.data.frame(tourr::rescale(f.pca$x))
+dat <- as.data.frame(cbind(dat, as.factor(flea[,7])))
+colnames(dat) <- c(paste0("PC", 1:6), "Species")
 
 gg3 <- ggplot(dat, aes(x = PC1, y = PC2, shape = Species, col = Species)) +
   geom_point(size = 2) + ggtitle("PCA") + coord_fixed() +
@@ -55,7 +55,7 @@ gg3 <- ggplot(dat, aes(x = PC1, y = PC2, shape = Species, col = Species)) +
   theme(axis.text.x=element_blank(), axis.text.y=element_blank()) +
   scale_color_brewer(palette = "Dark2") 
 
-### PCA pdf, cdf
+### PCA pdf, cdf -----
 dat <- as.data.frame(
   rbind(c(0,0,0,0), 
     cbind("PC" = 1:6,
@@ -82,43 +82,36 @@ gg2 <- ggplot(dat,
 #gridExtra::grid.arrange(gg1, gg2, ncol=2)
 
 
-### t-SNE + PCA
+### t-SNE + PCA -----
 #perplexity is knn. ~.9 sec for [74x6]
-f.tsne <- Rtsne(f, dims = 6, perplexity=15, verbose=TRUE, max_iter = 500) 
-colnames(f.tsne$Y) <- paste0("tS",1:6)
-# t-SNE is not inherently ordered, so let's do PCA on it.
+f.tsne <- Rtsne(flea_std, dims = 2, perplexity = 15, 
+                verbose = TRUE, max_iter = 500) 
+dat <- as.data.frame(tourr::rescale(f.tsne$Y))
+colnames(dat) <- paste0("tS",1:2)
+dat <- cbind(dat, "Species" = as.factor(flea[,7]))
 
-f.tsne.pca <- stats::prcomp(f.tsne$Y, center = TRUE, scale. = TRUE)
-colnames(f.tsne.pca$x) <- paste0("tSNE_PC",1:6)
-dat <- as.data.frame(f.tsne.pca$x) %>% scale()
-apply(dat, 2, function(x) (x / max(abs(x))))
-dat %<>% as.data.frame() %>% cbind("Species" = flea[,7])
-gg4 <- ggplot(dat, aes(x = tSNE_PC1, y = tSNE_PC2, 
+gg4 <- ggplot(dat, aes(x = tS1, y = tS2, 
                         shape = Species, col = Species) ) +
+  theme(axis.text.x=element_blank(), axis.text.y=element_blank() ) + 
   geom_point(size = 2) + ggtitle("t-SNE") + 
   xlab("First Component") + ylab("") + 
-  theme_minimal() + coord_fixed() + theme(legend.position = 'none') +
-  theme(axis.text.x=element_blank(), axis.text.y=element_blank() ) + 
+  theme_void() + coord_fixed() + theme(legend.position = 'none') +
   scale_color_brewer(palette = "Dark2")
 
 
-### Holes Tourr
-f.col <- rainbow(length(unique(flea$species)))[as.numeric(as.factor(flea$species))]
-f.pch <- as.numeric(flea$species)+14
-
-f.holes <- save_history(f, guided_tour(index = holes), max_bases = 25)
+### Holes Tourr -----
+f.holes <- save_history(flea_std, guided_tour(index = holes()), max_bases = 25)
 f.holes_end <- matrix(as.numeric(f.holes[,,dim(f.holes)[3]]),ncol=2)
 
-dat <- as.data.frame(f) %>% scale()
-dat <- (as.matrix(dat) %*% f.holes_end) %>% as.data.frame()
-apply(dat, 2, function(x) (x / max(abs(x))))
-colnames(dat) <- c("x", "y")
-dat %<>% cbind("Species" = flea[,7])
+dat <- as.data.frame(tourr::rescale(flea_std %*% f.holes_end))
+dat <- cbind(dat, flea$species)
+colnames(dat) <- c("x", "y", "Species")
+
 gg5 <- ggplot(dat, aes(x = x, y = y, shape = Species, col = Species)) +
   geom_point(size = 2) + ggtitle("Tour, holes") +
-  xlab("First Component") + ylab("") +
-  theme_minimal() + coord_fixed() + theme(legend.position = 'none') +
   theme(axis.text.x=element_blank(), axis.text.y=element_blank() ) +
+  xlab("First Component") + ylab("") +
+  theme_void() + coord_fixed() + theme(legend.position = 'none') +
   scale_color_brewer(palette = "Dark2")
 
 ### method comparison
@@ -146,9 +139,10 @@ Let high dim space be a euclidean space, $\mathbb{R}^p,~~p>3$
 - Tab 4: contact: how to find the code and get more details
 - Tab 5: more: additional tourr package enhancements
 &nbsp;  
+&nbsp;  
 
 ```{r, results="hold", fig.width=2}
-knitr::include_graphics("../images/QR_spinifex_useR2018.png")
+knitr::include_graphics("./images_useR2018/QR_spinifex_useR2018.png")
 ```
 &nbsp;  
 
@@ -169,28 +163,12 @@ Column {.tabset}
 ####
 
 ```{r, eval=TRUE, echo=FALSE, results='hold'}
-flea_std <- 
-  apply(flea[,1:6], 2, function(x) ((x-mean(x, na.rm=TRUE))/sd(x, na.rm=TRUE)))
-
-data <- flea_std
-p <- ncol(data)
 set.seed(50011)
-r_basis <- create_random_basis(p = p)
-pch <- flea$species
-col <- flea$species
+rb <- basis_random(n = ncol(flea_std))
+cat <- flea$species
 
-proj <-
-  proj_data(
-    data = data,
-    basis = r_basis,
-    manip_var = 4,
-    manip_type = "radial",
-    phi_from = 0,
-    phi_to = pi,
-    n_slides = 40
-  )
-slideshow(proj, col = col, pch = pch) # Doesn't use Dark2 (look of disapproval)
-#layout(pgg5, colors = "Dark2", color = ~proj$col) # should be done in ggplot
+proj <- play_manual_tour(basis = rb, data = flea_std, manip_var = 4, 
+                         col = cat, pch = cat)
 ```
 
 
@@ -210,12 +188,12 @@ slideshow(proj, col = col, pch = pch) # Doesn't use Dark2 (look of disapproval)
 # render(f, frames = 240, planned_tour(f.holes), #grand_tour(),
 #        display_xy(col = f.col, pch = f.pch),
 #                        #,group_by = flea$species, gp_legend = T),
-#        width = 600, height = 600, "png", "./images/fleaHolesTour-%03d.png")
+#        width = 600, height = 600, "png", "./images_useR2018/fleaHolesTour-%03d.png")
 # 
 # browseURL("http://gifmaker.me/")
 ```
 ```{r, results="hold"}
-knitr::include_graphics("../images/FleaHolesTour.gif")
+knitr::include_graphics("./images_useR2018/FleaHolesTour.gif")
 ```
 
 
@@ -302,8 +280,7 @@ nicholas.spyrison@monash.edu
 devtools::install_github("nspyrison/spinifex")
 library(spinifex)
 
-?spinifex::proj_data
-?spinifex::slideshow
+vignette("spinifex")
 ```
 &nbsp;
 
@@ -357,7 +334,7 @@ library(tourr)
 #        display_groupxy(col = f.col, pch = f.pch,
 #                        group_by = flea$species, gp_legend = T),
 #        width = 600, height = 600,
-#        "png", "./images/fleaHolesTour_groupxy-%03d.png")
+#        "png", "./images_useR2018/fleaHolesTour_groupxy-%03d.png")
 # 
 # #density_2d
 # require(MASS)
@@ -365,7 +342,7 @@ library(tourr)
 #        display_density2d(col = f.col, pch = f.pch,
 #                        group_by = flea$species, gp_legend = T),
 #        width = 600, height = 600,
-#        "png", "./images/fleaHolesTour_density2d-%03d.png")
+#        "png", "./images_useR2018/fleaHolesTour_density2d-%03d.png")
 # 
 # browseURL("http://gifmaker.me/")
 ```
@@ -373,11 +350,11 @@ library(tourr)
 #### animate_groupxy()
 
 ```{r, results="hold"}
-knitr::include_graphics("../images/FleaHolesTour_groupxy.gif")
+knitr::include_graphics("./images_useR2018/FleaHolesTour_groupxy.gif")
 ```
 
 #### animate_density2d()
 
 ```{r, results="hold"}
-knitr::include_graphics("../images/FleaHolesTour_density2d.gif")
+knitr::include_graphics("./images_useR2018/FleaHolesTour_density2d.gif")
 ```
